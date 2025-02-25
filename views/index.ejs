@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelWise</title>
+    <link href="/css/styles.css" rel="stylesheet" >
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Top Header -->
+    <div class="bg-blue-600 text-white py-2">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2 sm:mb-0">
+                <span class="text-sm">
+                    <a href="tel:+359882604784" class="hover:text-blue-100">+359 882 604 784</a>
+                </span>
+                <span class="text-sm">
+                    <a href="mailto:info@travelwise.bg" class="hover:text-blue-100">info@travelwise.bg</a>
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/aboutus" class="text-sm hover:text-blue-100">За нас</a>
+                <a href="/contact" class="text-sm hover:text-blue-100">Контакти</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/profile" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        <%= user.firstName %> <%= user.lastName %>
+                    </a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors">
+                            Админ Панел
+                        </a>
+                    <% } %>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                        Изход
+                    </a>
+                <% } else { %>
+                    <a href="/signin" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        Вход
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50" x-data="{ isOpen: false }">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-2xl font-bold text-blue-600">TravelWise</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/types/oneDay" class="text-gray-700 hover:text-blue-600 transition-colors">Еднодневни</a>
+                    <a href="/types/excursions" class="text-gray-700 hover:text-blue-600 transition-colors">Екскурзии</a>
+                    <a href="/types/holidays" class="text-gray-700 hover:text-blue-600 transition-colors">Почивки</a>
+                    <a href="/exotic" class="text-gray-700 hover:text-blue-600 transition-colors">Екзотични</a>
+                </div>
+                <button @click="isOpen = !isOpen" class="md:hidden focus:outline-none">
+                    <svg x-show="!isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg x-show="isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+        <div x-show="isOpen" class="md:hidden" style="display: none;">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/destinations" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
+                <a href="/excursions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екскурзии</a>
+                <a href="/holidays" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Почивки</a>
+                <a href="/exotic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екзотични</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container m-0 p-0 min-w-full">
+        <!-- Hero Section -->
+        <div id="hero-section" class="relative inset-0 min-w-screen min-h-screen overflow-hidden">
+            <div class="absolute inset-0 min-w-full min-h-screen m-0 p-0">
+                <img 
+                    id="hero-image"
+                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2073&q=80" 
+                    alt="Beautiful Beach" 
+                    class="inset-0 w-full h-full object-cover"
+                    style="width: 100vw; height: 100vh;"
+                >
+                <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center px-4">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white text-center mb-8">
+                        Открийте вашата мечтана почивка
+                    </h1>
+                    <button 
+                        onclick="scrollToSearch()" 
+                        class="bg-transparent hover:bg-white text-white hover:text-gray-900 font-bold py-3 px-8 border-2 border-white rounded-lg transition-colors duration-200"
+                    >
+                        Търсене на Оферти
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Search Section -->
+        <div id="search-section" class="w-screen bg-white px-4 sm:px-6 md:px-8">
+            <div class="mt-8 max-w-screen-xl mx-auto p-4 sm:p-6 md:p-8 rounded-lg shadow-lg">
+                <h2 class="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6 sm:mb-8">ТЪРСЕНЕ НА ОФЕРТИ</h2>
+                <form class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <div class="space-y-2">
+                        <label for="country" class="block text-sm font-medium text-gray-700">Държава</label>
+                        <select id="country" name="country" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="">Изберете държава</option>
+                            <option value="Гърция">Гърция</option>
+                            <option value="Италия">Италия</option>
+                            <option value="Тайланд">Тайланд</option>
+                            <option value="Испания">Испания</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="transport" class="block text-sm font-medium text-gray-700">Транспорт</label>
+                        <select id="transport" name="transport" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="">Изберете транспорт</option>
+                            <option value="Самолет">Самолет</option>
+                            <option value="Автобус">Автобус</option>
+                            <option value="Круиз">Круиз</option>
+                            <option value="Собствен">Собствен</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="from-date" class="block text-sm font-medium text-gray-700">От дата</label>
+                        <input type="date" id="from-date" name="from-date" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="to-date" class="block text-sm font-medium text-gray-700">До дата</label>
+                        <input type="date" id="to-date" name="to-date" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="col-span-full flex justify-center mt-4">
+                        <button type="submit" class="bg-blue-600 text-white px-8 sm:px-12 py-3 rounded-full hover:bg-blue-700 transition-colors w-full sm:w-auto">
+                            Търсене
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Контакти</h3>
+                    <p class="text-blue-100">Тел: +359 882 604 784</p>
+                    <p class="text-blue-100">Email: info@travelwise.bg</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Полезни връзки</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="text-blue-100 hover:text-white">За нас</a></li>
+                        <li><a href="/contact" class="text-blue-100 hover:text-white">Контакти</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Следвайте ни</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-blue-100 hover:text-white">Facebook</a>
+                        <a href="#" class="text-blue-100 hover:text-white">Instagram</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-blue-500 mt-8 pt-8 text-center">
+                <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        function scrollToSearch() {
+            const searchSection = document.getElementById('search-section');
+            searchSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

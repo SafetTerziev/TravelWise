@@ -1,0 +1,82 @@
+<!-- views/adminDashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TravelWise</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Админ Панел</h1>
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Добави нова оферта</h2>
+            <form action="/admin/add-destination" method="POST">
+                <div class="mb-4">
+                    <label for="destination" class="block mb-2">Дестинация:</label>
+                    <input type="text" id="destination" name="destination" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="description" class="block mb-2">Описание:</label>
+                    <textarea id="description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="price" class="block mb-2">Цена:</label>
+                    <input type="number" id="price" name="price" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="available_slots" class="block mb-2">Налични места:</label>
+                    <input type="number" id="available_slots" name="available_slots" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Добави оферта
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
+            <div id="destinations-list">
+                <!-- Destinations will be loaded here via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display destinations
+        fetch('/admin/destinations')
+            .then(response => response.json())
+            .then(destinations => {
+                const destinationsList = document.getElementById('destinations-list');
+                destinationsList.innerHTML = destinations.map(dest => `
+                    <div class="border-b py-4">
+                        <h3 class="text-lg font-semibold">${dest.destination}</h3>
+                        <p>${dest.description}</p>
+                        <p>Цена: ${dest.price} лв</p>
+                        <p>Налични места: ${dest.available_slots}</p>
+                        <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
+                            Изтрий
+                        </button>
+                    </div>
+                `).join('');
+            });
+
+        // Function to delete a destination
+        function deleteDestination(id) {
+            if (confirm('Сигурни ли сте, че искате да изтриете тази оферта?')) {
+                fetch(`/admin/delete-destination/${id}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert('Офертата е изтрита успешно');
+                            location.reload();
+                        } else {
+                            alert('Грешка при изтриване на офертата');
+                        }
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

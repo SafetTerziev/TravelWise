@@ -1,0 +1,221 @@
+<!-- src/views/destination.ejs -->
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= destination.name %> - TravelWise</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="bg-blue-600 text-white py-2">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2 sm:mb-0">
+                <span class="text-sm">
+                    <a href="tel:+359882604784" class="hover:text-blue-100">+359 882 604 784</a>
+                </span>
+                <span class="text-sm">
+                    <a href="mailto:info@travelwise.bg" class="hover:text-blue-100">info@travelwise.bg</a>
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/aboutus" class="text-sm hover:text-blue-100">За нас</a>
+                <a href="/contact" class="text-sm hover:text-blue-100">Контакти</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/profile" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        <%= user.firstName %> <%= user.lastName %>
+                    </a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors">
+                            Админ Панел
+                        </a>
+                    <% } %>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                        Изход
+                    </a>
+                <% } else { %>
+                    <a href="/signin" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        Вход
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation-->
+    <nav class="bg-white shadow-md sticky top-0 z-50" x-data="{ isOpen: false }">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-2xl font-bold text-blue-600">TravelWise</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/types/oneDay" class="text-gray-700 hover:text-blue-600 transition-colors">Еднодневни</a>
+                    <a href="/types/excursions" class="text-gray-700 hover:text-blue-600 transition-colors">Екскурзии</a>
+                    <a href="/types/holidays" class="text-gray-700 hover:text-blue-600 transition-colors">Почивки</a>
+                    <a href="/types/exotic" class="text-gray-700 hover:text-blue-600 transition-colors">Екзотични</a>
+                </div>
+                <button @click="isOpen = !isOpen" class="md:hidden focus:outline-none">
+                    <svg x-show="!isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg x-show="isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+        <div x-show="isOpen" class="md:hidden" style="display: none;">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/destinations" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
+                <a href="/excursions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екскурзии</a>
+                <a href="/holidays" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Почивки</a>
+                <a href="/exotic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екзотични</a>
+            </div>
+        </div>
+    </nav>
+
+    <% if (typeof payment !== 'undefined' && payment === 'success') { %>
+        <div class="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+            ✅ Плащането е успешно! Благодарим Ви за резервацията.
+        </div>
+    <% } else if (typeof payment !== 'undefined' && payment === 'failed') { %>
+        <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
+            ❌ Плащането беше отказано! Опитайте отново.
+        </div>
+    <% } %>
+    
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8"><%= destination.name %></h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Image and Gallery -->
+                <div class="lg:col-span-2">
+                    <div class="rounded-lg overflow-hidden mb-6">
+                        <img 
+                            src="<%= destination.image_url %>" 
+                            alt="<%= destination.name %>" 
+                            class="w-full h-[500px] object-cover"
+                        >
+                    </div>
+                </div>
+
+                <!-- Details and Booking -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span>Самолет</span>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                <span>Самолетна екскурзия -17 дни</span>
+                            </div>
+
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>17 дни / 13 нощувки</span>
+                            </div>
+
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span>13.11.2025</span>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-4 mt-4">
+                                <div class="mt-2">
+                                    <span class="text-sm">от</span>
+                                    <span class="text-3xl font-bold text-green-600">10825</span>
+                                    <span class="text-sm">лв.</span>
+                                </div>
+                            </div>
+
+                            <button id="payButton" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                РЕЗЕРВИРАЙ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-4">Описание</h2>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <p class="text-gray-700"><%= destination.description %></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-blue-600 text-white mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Контакти</h3>
+                    <p class="text-blue-100">Тел: +359 882 604 784</p>
+                    <p class="text-blue-100">Email: info@travelwise.bg</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Полезни връзки</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="text-blue-100 hover:text-white">За нас</a></li>
+                        <li><a href="/contact" class="text-blue-100 hover:text-white">Контакти</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Следвайте ни</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-blue-100 hover:text-white">Facebook</a>
+                        <a href="#" class="text-blue-100 hover:text-white">Instagram</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-blue-500 mt-8 pt-8 text-center">
+                <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        var stripe = Stripe('pk_test_51QwRMbFtpkraOtDeC38F1MNtw5wx26moYB9frAI1Yg56QDAuhOSaa7ISN67MxaQpzdHqfbi88nRwH1u7p9bQMZ3N00kgzaLAe1');
+        console.log('Stripe:', stripe);
+        document.getElementById("payButton").addEventListener("click", async () => {
+        const response = await fetch("/payment/create-checkout-session", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                destinationName: "<%= destination.name %>",
+                price: 10825,
+            }),
+        });
+
+        const session = await response.json();
+        window.location.href = `https://checkout.stripe.com/pay/${session.id}`;
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment_status');
+
+        if (paymentStatus === 'success') {
+            alert('Payment was successful! Thank you for your purchase.');
+        } else if (paymentStatus === 'cancel') {
+            alert('Payment was canceled. Please try again.');
+        }
+        
+    });
+    </script>
+</body>
+</html>

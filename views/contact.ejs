@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакти - TravelWise</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white py-2">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="container mx-auto px-2 flex items-center justify-between">
+                <a href="/" class="text-2xl font-bold text-white py-1 px-0 rounded-full transition duration-300">
+                    TravelWise
+                </a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/" class="text-sm hover:text-blue-100">Начало</a>
+                <a href="/about" class="text-sm hover:text-blue-100 whitespace-nowrap">За нас</a>
+                <% if (locals.user) { %>
+                    <div class="flex items-center space-x-4">
+                        <a href="/profile" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors whitespace-nowrap">
+                            <%= user.firstName %> <%= user.lastName %>
+                        </a>
+                        <% if (user.role === 'admin') { %>
+                            <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors whitespace-nowrap">
+                                Админ Панел
+                            </a>
+                        <% } %>
+                        <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                            Изход
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/signin" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        Вход
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Контакти</h1>
+
+        <% if (locals.query && locals.query.success) { %>
+            <div class="bg-green-50 border border-green-200 text-green-800 rounded-md p-4 mb-6">
+                Вашето запитване беше изпратено успешно! Ще се свържем с вас скоро.
+            </div>
+        <% } %>
+
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Contact Form -->
+                    <div>
+                        <% if (locals.user) { %>
+                            <form action="/submit-inquiry" method="POST" class="space-y-4" onsubmit="document.getElementById('submitBtn').disabled = true;">
+                                <div>
+                                    <input type="text" name="name" placeholder="Три имена" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value="<%= user.firstName %> <%= user.lastName %>" readonly>
+                                </div>
+                                <div>
+                                    <input type="email" name="email" placeholder="Имейл адрес" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value="<%= user.email %>" readonly>
+                                </div>
+                                <div>
+                                    <input type="tel" name="phone" placeholder="Телефон" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <textarea name="message" placeholder="Допълнителен текст" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"></textarea>
+                                </div>
+                                <button id="submitBtn" type="submit"
+                                    class="w-full bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                                    Направете запитване
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                                <p class="text-yellow-800 mb-4">За да направите запитване, моля първо влезте в профила си или се регистрирайте.</p>
+                                <div class="flex space-x-4">
+                                    <a href="/signin" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                                        Вход
+                                    </a>
+                                    <a href="/register" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                                        Регистрация
+                                    </a>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="space-y-6">
+                        <h2 class="text-xl font-semibold">TravelWise</h2>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Адрес:</h3>
+                            <p>бул. "Пещерско шосе" 114, ет 1, офис 1, Гр. Пловдив</p>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Работно време:</h3>
+                            <p>9:00 - 18:00 (понеделник - петък)</p>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Телефон:</h3>
+                            <p>+359 876 117 098</p>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">E-mail:</h3>
+                            <p>infowisetravel@gmail.com</p>
+                            <a href="mailto:info@travelwise.bg" class="text-blue-600 hover:underline"></a>
+                        </div>
+                    </div>
+                    <!-- New Map Section -->
+                    <div class="bg-white shadow-lg w-screen rounded-lg overflow-hidden">
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold mb-8">Къде се намираме</h2>
+                            <div class="relative min-w-screen h-[600px] rounded-lg overflow-hidden">
+                                <iframe 
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2958.825100520061!2d24.699301375249473!3d42.132627349441215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14accfc5311c464f%3A0xe821ed846073b825!2z0JfQsNC_0LDQtNC90LAg0L_RgNC-0LzQuNGI0LvQtdC90LAg0LfQvtC90LDQl9Cw0L_QsNC00LXQvSwg0LHRg9C7LiDigJ7Qn9C10YnQtdGA0YHQutC-INGI0L7RgdC14oCcIDExNCwgNDAwMSDQn9C70L7QstC00LjQsg!5e0!3m2!1sbg!2sbg!4v1740417217714!5m2!1sbg!2sbg" 
+                                    width="1150" 
+                                    height="500" 
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy" 
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                ></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white py-6 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-between">
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                    <h3 class="text-lg font-semibold mb-2">TravelWise</h3>
+                    <p class="text-sm">Вашият надежден партньор за незабравими пътешествия.</p>
+                </div>
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                    <h3 class="text-lg font-semibold mb-2">Контакти</h3>
+                    <p class="text-sm">Телефон: +359 876 117 098</p>
+                    <p class="text-sm">Имейл: infowisetravel@gmail.com</p>
+                </div>
+                <div class="w-full md:w-1/3">
+                    <h3 class="text-lg font-semibold mb-2">Следвайте ни</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white hover:text-blue-400">Facebook</a>
+                        <a href="#" class="text-white hover:text-blue-400">Instagram</a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-sm">
+                <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
