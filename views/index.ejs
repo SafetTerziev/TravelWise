@@ -48,9 +48,8 @@
             <div class="flex justify-between items-center h-16">
                 <a href="/" class="text-2xl font-bold text-blue-600">TravelWise</a>
                 <div class="hidden md:flex space-x-8">
-                    <a href="/types/oneDay" class="text-gray-700 hover:text-blue-600 transition-colors">Еднодневни</a>
-                    <a href="/types/excursions" class="text-gray-700 hover:text-blue-600 transition-colors">Екскурзии</a>
-                    <a href="/types/holidays" class="text-gray-700 hover:text-blue-600 transition-colors">Почивки</a>
+                    <a href="/oneDay" class="text-gray-700 hover:text-blue-600 transition-colors">Еднодневни</a>
+                    <a href="/excursions" class="text-gray-700 hover:text-blue-600 transition-colors">Екскурзии</a>
                     <a href="/exotic" class="text-gray-700 hover:text-blue-600 transition-colors">Екзотични</a>
                 </div>
                 <button @click="isOpen = !isOpen" class="md:hidden focus:outline-none">
@@ -68,9 +67,8 @@
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <div x-show="isOpen" class="md:hidden" style="display: none;">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="/destinations" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
+                <a href="/oneDay" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
                 <a href="/excursions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екскурзии</a>
-                <a href="/holidays" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Почивки</a>
                 <a href="/exotic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екзотични</a>
             </div>
         </div>
