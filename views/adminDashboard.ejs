@@ -4,79 +4,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - TravelWise</title>
+    <title>Админ Панел - TravelWise</title>
     <link href="/css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
+<!-- Header -->
+<header class="bg-blue-600 text-white py-2">
+    <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+        <div class="container mx-auto px-2 flex items-center justify-between">
+            <a href="/" class="text-2xl font-bold text-white py-1 px-0 rounded-full transition duration-300">
+                TravelWise
+            </a>
+        </div>
+        <div class="flex items-center space-x-6">
+            <a href="/" class="text-sm hover:text-blue-100">Начало</a>
+            <a href="/about" class="text-sm hover:text-blue-100 whitespace-nowrap">За нас</a>
+            <% if (locals.user) { %>
+                <div class="flex items-center space-x-4">
+                    <a href="/profile" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors whitespace-nowrap">
+                        <%= user.firstName %> <%= user.lastName %>
+                    </a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors whitespace-nowrap">
+                            Админ Панел
+                        </a>
+                    <% } %>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                        Изход
+                    </a>
+                </div>
+            <% } else { %>
+                <a href="/signin" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                    Вход
+                </a>
+            <% } %>
+        </div>
+    </div>
+</header>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6">Админ Панел</h1>
+        <!-- Add new offer form -->
         <div class="bg-white shadow rounded-lg p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Добави нова оферта</h2>
             <form action="/admin/add-destination" method="POST">
-                <div class="mb-4">
-                    <label for="destination" class="block mb-2">Дестинация:</label>
-                    <input type="text" id="destination" name="destination" required class="w-full px-3 py-2 border rounded">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="name" class="block mb-2">Име на дестинацията:</label>
+                        <input type="text" id="name" name="name" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="country" class="block mb-2">Държава:</label>
+                        <input type="text" id="country" name="country" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="description" class="block mb-2">Описание:</label>
+                        <textarea id="description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="image_url" class="block mb-2">URL на изображението:</label>
+                        <input type="url" id="image_url" name="image_url" required class="w-full px-3 py-2 border rounded">
+                        <p class="mt-1 text-sm text-gray-500">
+                            Поддържани формати: .jpg, .jpeg, .png, .webp
+                        </p>
+                    </div>
+                    <div>
+                        <label for="type" class="block mb-2">Тип:</label>
+                        <select id="type" name="type" required class="w-full px-3 py-2 border rounded">
+                            <option value="oneDay">Еднодневна</option>
+                            <option value="excursion">Екскурзия</option>
+                            <option value="exotic">Екзотична</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="price" class="block mb-2">Цена:</label>
+                        <input type="number" id="price" name="price" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="transport" class="block mb-2">Транспорт:</label>
+                        <select id="transport" name="transport" required class="w-full px-3 py-2 border rounded"><option value="oneDay">Самолет</option>
+                            <option value="Автобус">Автобус</option>
+                            <option value="Собствен">Собствен</option>
+                        </select>                  
+                     </div>
+                    <div>
+                        <label for="duration" class="block mb-2">Продължителност:</label>
+                        <input type="text" id="duration" name="duration" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="start_date" class="block mb-2">Начална дата:</label>
+                        <input type="date" id="start_date" name="start_date" required class="w-full px-3 py-2 border rounded">
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label for="description" class="block mb-2">Описание:</label>
-                    <textarea id="description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="price" class="block mb-2">Цена:</label>
-                    <input type="number" id="price" name="price" required class="w-full px-3 py-2 border rounded">
-                </div>
-                <div class="mb-4">
-                    <label for="available_slots" class="block mb-2">Налични места:</label>
-                    <input type="number" id="available_slots" name="available_slots" required class="w-full px-3 py-2 border rounded">
-                </div>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                     Добави оферта
                 </button>
             </form>
         </div>
 
-        <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
-            <div id="destinations-list">
-                <!-- Destinations will be loaded here via JavaScript -->
-            </div>
+    <!-- Existing offers -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
+        <div id="destinations-list">
+            <!-- Destinations will be loaded here via JavaScript -->
         </div>
     </div>
 
-    <script>
-        // Fetch and display destinations
-        fetch('/admin/destinations')
-            .then(response => response.json())
-            .then(destinations => {
-                const destinationsList = document.getElementById('destinations-list');
-                destinationsList.innerHTML = destinations.map(dest => `
-                    <div class="border-b py-4">
-                        <h3 class="text-lg font-semibold">${dest.destination}</h3>
-                        <p>${dest.description}</p>
-                        <p>Цена: ${dest.price} лв</p>
-                        <p>Налични места: ${dest.available_slots}</p>
-                        <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
-                            Изтрий
-                        </button>
-                    </div>
-                `).join('');
-            });
+    <!-- Registered users -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Регистрирани потребители</h2>
+        <div id="users-list">
+            <!-- Users will be loaded here via JavaScript -->
+        </div>
+    </div>
+</div>
 
-        // Function to delete a destination
-        function deleteDestination(id) {
-            if (confirm('Сигурни ли сте, че искате да изтриете тази оферта?')) {
-                fetch(`/admin/delete-destination/${id}`, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            alert('Офертата е изтрита успешно');
-                            location.reload();
-                        } else {
-                            alert('Грешка при изтриване на офертата');
-                        }
-                    });
-            }
+<!-- Footer -->
+<footer class="bg-blue-600 text-white mt-12">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">Контакти</h3>
+                <p class="text-blue-100">Тел: +359 882 604 784</p>
+                <p class="text-blue-100">Email: info@travelwise.bg</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Полезни връзки</h3>
+                <ul class="space-y-2">
+                    <li><a href="/about" class="text-blue-100 hover:text-white">За нас</a></li>
+                    <li><a href="/contact" class="text-blue-100 hover:text-white">Контакти</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Следвайте ни</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-blue-100 hover:text-white">Facebook</a>
+                    <a href="#" class="text-blue-100 hover:text-white">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-blue-500 mt-8 pt-8 text-center">
+            <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Fetch and display destinations
+    fetch('/admin/destinations')
+        .then(response => response.json())
+        .then(destinations => {
+            const destinationsList = document.getElementById('destinations-list');
+            destinationsList.innerHTML = destinations.map(dest => `
+                <div class="border-b py-4">
+                    <h3 class="text-lg font-semibold">${dest.name}</h3>
+                    <p>${dest.description}</p>
+                    <p>Държава: ${dest.country}</p>
+                    <p>Тип: ${dest.type}</p>
+                    <p>Цена: ${dest.price} лв</p>
+                    <p>Транспорт: ${dest.transport}</p>
+                    <p>Продължителност: ${dest.duration}</p>
+                    <p>Начална дата: ${new Date(dest.start_date).toLocaleDateString('bg-BG')}</p>
+                    <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
+                        Изтрий
+                    </button>
+                </div>
+            `).join('');
+        });
+
+    // Fetch and display users
+    fetch('/admin/users')
+        .then(response => response.json())
+        .then(users => {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = users.map(user => `
+                <div class="border-b py-4">
+                    <h3 class="text-lg font-semibold">${user.first_name} ${user.last_name}</h3>
+                    <p>Email: ${user.email}</p>
+                    <p>Роля: ${user.role}</p>
+                    <button onclick="deleteUser(${user.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
+                        Изтрий акаунт
+                    </button>
+                </div>
+            `).join('');
+        });
+
+    // Function to delete a destination
+    function deleteDestination(id) {
+        if (confirm('Сигурни ли сте, че искате да изтриете тази оферта?')) {
+            fetch(`/admin/delete-destination/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Офертата е изтрита успешно');
+                        location.reload();
+                    } else {
+                        alert('Грешка при изтриване на офертата');
+                    }
+                });
         }
-    </script>
+    }
+
+    // Function to delete a user
+    function deleteUser(id) {
+        if (confirm('Сигурни ли сте, че искате да изтриете този потребителски акаунт?')) {
+            fetch(`/admin/delete-user/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Потребителският акаунт е изтрит успешно');
+                        location.reload();
+                    } else {
+                        alert('Грешка при изтриване на потребителския акаунт');
+                    }
+                });
+        }
+    }
+</script>
 </body>
 </html>

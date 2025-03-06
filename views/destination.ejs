@@ -69,9 +69,8 @@
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <div x-show="isOpen" class="md:hidden" style="display: none;">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="/destinations" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
+                <a href="/oneDay" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Еднодневни</a>
                 <a href="/excursions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екскурзии</a>
-                <a href="/holidays" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Почивки</a>
                 <a href="/exotic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екзотични</a>
             </div>
         </div>
@@ -111,34 +110,28 @@
                                 <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
-                                <span>Самолет</span>
+                                <span><%= destination.transport %></span>
                             </div>
-                            
-                            <div class="flex items-center">
-                                <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                </svg>
-                                <span>Самолетна екскурзия -17 дни</span>
-                            </div>
-
                             <div class="flex items-center">
                                 <svg class="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                <span>17 дни / 13 нощувки</span>
+                                <span><%= destination.duration %></span>
                             </div>
 
                             <div class="flex items-center">
                                 <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                <span>13.11.2025</span>
+                                <span><%= new Date(destination.start_date).toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
                             </div>
 
                             <div class="border-t border-gray-200 pt-4 mt-4">
                                 <div class="mt-2">
                                     <span class="text-sm">от</span>
-                                    <span class="text-3xl font-bold text-green-600">10825</span>
+                                    <span class="text-3xl font-bold text-green-600">
+                                        <%= typeof destination.price === 'number' ? destination.price.toFixed(2) : parseFloat(destination.price).toFixed(2) || '0.00' %>
+                                    </span>
                                     <span class="text-sm">лв.</span>
                                 </div>
                             </div>
@@ -200,7 +193,7 @@
             },
             body: JSON.stringify({
                 destinationName: "<%= destination.name %>",
-                price: 10825,
+                price: "<%= destination.price %>",
             }),
         });
 

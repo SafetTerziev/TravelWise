@@ -6,21 +6,13 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-//const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 const SESSION_SECRET = 'SereneSymphonyTundraEclipseMath2025';
-const ADMIN_EMAIL = 'infowisetravel@gmail.com';
-const sgMail = require('@sendgrid/mail');
-const dotenv = require('dotenv');
-const stripe = require('stripe')("sk_test_51QwRMbFtpkraOtDeF2bVkO5DXd4v6Qui6jxN3KqVH1qTcapCS4ArrwVLE7V4KTJrFSZ7ykfD2dHx2yv2fp91PjmO00vZDojKip");
-require('dotenv').config();
-require('dotenv').config();
+const EMAIL_USER = 'safetterziev8@gmail.com';
+const EMAIL_PASS = '30102006';
+const ADMIN_EMAIL = 'safetterziev8@gmail.com';
 const port = 4000;
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-const cors = require('cors');
-const { default: Stripe } = require('stripe');
-app.use(cors());
-
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -230,27 +222,38 @@ app.use((err, req, res, next) => {
 
 // Add new destination
 app.post('/admin/add-destination', isAdmin, (req, res) => {
-  const { destination, description, price, available_slots } = req.body;
-  const query = 'INSERT INTO destinations (destination, description, price, available_slots) VALUES (?, ?, ?, ?)';
-  connection.query(query, [destination, description, price, available_slots], (err, result) => {
-    if (err) {
-      console.log('Error adding destination:', err);
-      return res.status(500).json({ error: 'Server error' });
+  const { name, country, description, image_url, type, price, transport, duration, start_date } = req.body;
+  const numericPrice = parseFloat(price);
+    
+    if (isNaN(numericPrice)) {
+        return res.status(400).json({ error: 'Invalid price' });
     }
-    res.redirect('/admin-dashboard');
-  });
+  connection.query(
+      'INSERT INTO destinations (name, country, description, image_url, type, price, transport, duration, start_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, country, description, image_url, type, price, transport, duration, start_date],
+      (error, result) => {
+          if (error) {
+              console.error('Error adding destination:', error);
+              return res.status(500).json({ error: 'Internal server error' });
+          }
+          res.redirect('/admin');
+      }
+  );
 });
 
 // Delete destination
 app.delete('/admin/delete-destination/:id', isAdmin, (req, res) => {
   const { id } = req.params;
-  const query = 'DELETE FROM destinations WHERE id = ?';
-  connection.query(query, [id], (err, result) => {
-    if (err) {
-      console.log('Error deleting destination:', err);
-      return res.status(500).json({ error: 'Server error' });
-    }
-    res.json({ success: true });
+  connection.query('DELETE FROM destinations WHERE id = ?', [id], (error, result) => {
+      if (error) {
+          console.error('Error deleting destination:', error);
+          return res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+      if (result.affectedRows > 0) {
+          res.json({ success: true });
+      } else {
+          res.status(404).json({ success: false, error: 'Destination not found' });
+      }
   });
 });
 
@@ -265,7 +268,19 @@ app.get('/contact', (req, res) => {
   });
 });
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
 app.post('/submit-inquiry', async (req, res) => {
   try {
     if (!req.session.user) {
@@ -273,22 +288,21 @@ app.post('/submit-inquiry', async (req, res) => {
     }
 
     const { name, email, phone, message } = req.body;
-    const userEmail = req.session.user.email;
 
-    // Валидиране на входните данни
+    // Validate input
     if (!name || !email || !phone || !message) {
       return res.status(400).send('Всички полета са задължителни');
     }
 
-    const msg = {
-      to: process.env.ADMIN_EMAIL, 
-      from: userEmail, 
+    const mailOptions = {
+      from: `"${name}" <${email}>`,
+      to: ADMIN_EMAIL,
       subject: 'Ново запитване от TravelWise',
       text: `
         Ново запитване от уебсайта на TravelWise:
         
         Име: ${name}
-        Имейл: ${userEmail}
+        Имейл: ${email}
         Телефон: ${phone}
         
         Съобщение:
@@ -297,40 +311,23 @@ app.post('/submit-inquiry', async (req, res) => {
       html: `
         <h2>Ново запитване от уебсайта на TravelWise:</h2>
         <p><strong>Име:</strong> ${name}</p>
-        <p><strong>Имейл:</strong> ${userEmail}</p>
+        <p><strong>Имейл:</strong> ${email}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Съобщение:</strong></p>
         <p>${message}</p>
       `
     };
 
-    // Изпращане на имейл
-    await sgMail.send(msg);
+    // Send email
+    await transporter.sendMail(mailOptions);
     
-    // Пренасочване с успешно съобщение
+    // Redirect with success message
     res.redirect('/contact?success=true');
 
   } catch (error) {
     console.error('Грешка при изпращане на имейл:', error);
-    return res.redirect('/contact?error=true&message=' + encodeURIComponent(error.message));
+    res.status(500).send('Грешка при изпращане на запитването. Моля, опитайте отново по-късно.');
   }
-});
-
-
-
-app.get('/admin-dashboard', isAdmin, (req, res) => {
-  res.render('adminDashboard');
-});
-
-app.get('/admin/destinations', isAdmin, (req, res) => {
-  const query = 'SELECT * FROM destinations';
-  connection.query(query, (err, results) => {
-    if (err) {
-      console.log('Error fetching destinations:', err);
-      return res.status(500).json({ error: 'Server error' });
-    }
-    res.json(results);
-  });
 });
 
 app.get('/exotic', async(req, res) => {
@@ -343,53 +340,65 @@ app.get('/exotic', async(req, res) => {
                destinations: destinations});
 });
 
-app.get('/destination/:id', async(req, res) => {
-      const [destination] = await connection.promise().query(
-          'SELECT * FROM destinations WHERE id = ?',
-          [req.params.id]
-      );
-
-      if (!destination[0]) {
-          return res.status(404).render('404', {
-              user: req.session.user,
-              message: 'Дестинацията не беше намерена'
-          });
-      }
-
-      res.render('destination', {
-          user: req.session.user,
-          destination: destination[0]
-      });
-  
+app.get('/admin-dashboard', isAdmin, (req, res) => {
+  res.render('adminDashboard');
 });
 
-app.post("/payment/create-checkout-session", async (req, res) => {
-  try {
-      const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items: [
-              {
-                  price_data: {
-                      currency: "bgn", 
-                      product_data: {
-                          name: req.body.destinationName, // Pass the destination name dynamically
-                      },
-                      unit_amount: req.body.price * 100, // Stripe expects price in cents
-                  },
-                  quantity: 1,
-              },
-          ],
-          mode: "payment",
-          success_url:`http://localhost:4000/?payment_status=success`,
-          cancel_url:`http://localhost:4000/?payment_status=cancel`,
-      });
+app.get('/admin/destinations', isAdmin, (req, res) => {
+  connection.query('SELECT *, CAST(price AS DECIMAL(10, 2)) AS price FROM destinations', (error, results) => {
+      if (error) {
+          console.error('Error fetching destinations:', error);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+      res.json(results);
+  });
+})
 
-      res.json({ id: session.id });
-  } catch (error) {
-      console.error("Error creating Stripe session:", error);
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+app.get('/admin/users', isAdmin, (req, res) => {
+  connection.query('SELECT id, first_name, last_name, email, role FROM users WHERE role = "customer"', (error, results) => {
+      if (error) {
+          console.error('Error fetching users:', error);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+      console.log('Fetched users:', results);
+      res.json(results);
+  });
+});
+
+//Delete user
+app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM users WHERE id = ?', [id], (error, result) => {
+      if (error) {
+          console.error('Error deleting user:', error);
+          return res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+      if (result.affectedRows > 0) {
+          res.json({ success: true });
+      } else {
+          res.status(404).json({ success: false, error: 'User not found' });
+      }
+  });
+});
+
+app.get('/destination/:id', async(req, res) => {
+  const [destination] = await connection.promise().query(
+      'SELECT * FROM destinations WHERE id = ?',
+      [req.params.id]
+  );
+
+  if (!destination[0]) {
+      return res.status(404).render('404', {
+          user: req.session.user,
+          message: 'Дестинацията не беше намерена'
+      });
   }
+
+  res.render('destination', {
+      user: req.session.user,
+      destination: destination[0]
+  });
+
 });
 
 
