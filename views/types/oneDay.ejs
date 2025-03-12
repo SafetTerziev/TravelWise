@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Еднодневни - TravelWise</title>
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Top Header! -->
+    <div class="bg-blue-600 text-white py-2">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2 sm:mb-0">
+                <span class="text-sm">
+                    <a href="tel:+359882604784" class="hover:text-blue-100">+359 882 604 784</a>
+                </span>
+                <span class="text-sm">
+                    <a href="mailto:info@travelwise.bg" class="hover:text-blue-100">info@travelwise.bg</a>
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/aboutus" class="text-sm hover:text-blue-100">За нас</a>
+                <a href="/contact" class="text-sm hover:text-blue-100">Контакти</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/profile" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        <%= user.firstName %> <%= user.lastName %>
+                    </a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors">
+                            Админ Панел
+                        </a>
+                    <% } %>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                        Изход
+                    </a>
+                <% } else { %>
+                    <a href="/signin" class="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                        Вход
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation (Include your updated navigation here) -->
+    <nav class="bg-white shadow-md sticky top-0 z-50" x-data="{ isOpen: false }">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-2xl font-bold text-blue-600">TravelWise</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/oneDay" class="text-gray-700 hover:text-blue-600 transition-colors">Еднодневни</a>
+                    <a href="/excursions" class="text-gray-700 hover:text-blue-600 transition-colors">Екскурзии</a>
+                    <a href="/exotic" class="text-gray-700 hover:text-blue-600 transition-colors">Екзотични</a>
+                </div>
+                <button @click="isOpen = !isOpen" class="md:hidden focus:outline-none">
+                    <svg x-show="!isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg x-show="isOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+        <div x-show="isOpen" class="md:hidden" style="display: none;">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/oneDay" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Дестинации</a>
+                <a href="/excursions" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екскурзии</a>
+                <a href="/exotic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Екзотични</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="max-w-4xl mx-auto text-center mb-12">
+            <h1 class="text-4xl font-bold mb-6">Еднодневни екскурзии</h1>
+            <p class="text-gray-600 mb-6">
+                Еднодневните екскурзии са идеалният начин да избягате от ежедневието и да се насладите на нови преживявания, без да отделяте много време. Те са перфектни за уикенди или когато имате само един свободен ден.
+            </p>
+            <p class="text-gray-600 mb-8">
+                Нашите еднодневни екскурзии включват посещения на забележителности, природни паркове, исторически обекти и други интересни места в България и съседните страни, до които можете да стигнете и да се върнете в рамките на един ден.
+            </p>
+            <button class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors">
+                Виж повече
+            </button>
+        </div>
+        
+        <!-- Destinations -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <% destinations.forEach(destination => { %>
+                <a href="/destination/<%= destination.id %>" class="block rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="relative">
+                        <img 
+                            src="<%= destination.image_url %>" 
+                            alt="<%= destination.name %>" 
+                            class="w-full h-64 object-cover"
+                        >
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2"><%= destination.name %></h3>
+                        <p class="text-gray-600 mb-4"><%= destination.description.substring(0, 150) %>...</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <%= destination.country %>
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                1 ден
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            <% }); %>
+        </div>
+    </main>    
+
+    <!-- Footer (Same as index.ejs) -->
+    <footer class="bg-blue-600 text-white mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Контакти</h3>
+                    <p class="text-blue-100">Тел: +359 882 604 784</p>
+                    <p class="text-blue-100">Email: info@travelwise.bg</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Полезни връзки</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="text-blue-100 hover:text-white">За нас</a></li>
+                        <li><a href="/contact" class="text-blue-100 hover:text-white">Контакти</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Следвайте ни</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-blue-100 hover:text-white">Facebook</a>
+                        <a href="#" class="text-blue-100 hover:text-white">Instagram</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-blue-500 mt-8 pt-8 text-center">
+                <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

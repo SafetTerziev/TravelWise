@@ -236,7 +236,7 @@ app.post('/admin/add-destination', isAdmin, (req, res) => {
               console.error('Error adding destination:', error);
               return res.status(500).json({ error: 'Internal server error' });
           }
-          res.redirect('/admin');
+          res.redirect('/admin-dashboard');
       }
   );
 });
@@ -332,12 +332,32 @@ app.post('/submit-inquiry', async (req, res) => {
 
 app.get('/exotic', async(req, res) => {
   const [destinations] = await connection.promise().query(
-               'SELECT * FROM destinations WHERE type = "exotic"'
+         'SELECT * FROM destinations WHERE type = "exotic"'
          );
     
-           res.render('types/exotic', {
-               user: req.session.user,
-               destinations: destinations});
+  res.render('types/exotic', {
+     user: req.session.user,
+    destinations: destinations});
+});
+
+app.get('/excursions', async (req, res) => {
+  const [destinations] = await connection.promise().query(
+    'SELECT * FROM destinations WHERE type = "excursion"'
+);
+
+res.render('types/excursions', {
+    user: req.session.user,
+    destinations: destinations});
+});
+
+app.get('/oneDay', async (req, res) => {
+  const [destinations] = await connection.promise().query(
+    'SELECT * FROM destinations WHERE type = "oneDay"'
+);
+
+res.render('types/oneDay', {
+    user: req.session.user,
+    destinations: destinations});
 });
 
 app.get('/admin-dashboard', isAdmin, (req, res) => {
