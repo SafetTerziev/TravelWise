@@ -74,6 +74,136 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+app.get('/search', (req, res) => {
+  const { country, transport, start_date, type } = req.query;
+  
+  // Build the query dynamically based on provided parameters
+  let query = 'SELECT * FROM destinations WHERE 1=1';
+  const params = [];
+  
+  if (country && country !== '') {
+      query += ' AND country = ?';
+      params.push(country);
+  }
+  
+  if (transport && transport !== '') {
+      query += ' AND transport = ?';
+      params.push(transport);
+  }
+  
+  if (start_date && start_date !== '') {
+      query += ' AND start_date >= ?';
+      params.push(start_date);
+  }
+  
+  if (type && type !== '') {
+      query += ' AND type = ?';
+      params.push(type);
+  }
+  
+  // Execute the query
+  connection.query(query, params, (error, results) => {
+      if (error) {
+          console.error('Error searching destinations:', error);
+          return res.status(500).send('Internal server error');
+      }
+      
+      // Render the search results page
+      res.render('search-results', {
+          destinations: results,
+          searchParams: { country, transport, start_date, type },
+          user: req.session.user
+      });
+  });
+});
+
+// Home route with dynamic dropdown data
+app.get('/', (req, res) => {
+  // Use Promise.all to run both queries in parallel
+  Promise.all([
+      // Query for countries
+      new Promise((resolve, reject) => {
+          pool.query('SELECT DISTINCT country FROM destinations WHERE country IS NOT NULL AND country != "" ORDER BY country', (error, results) => {
+              if (error) {
+                  console.error('Error fetching countries:', error);
+                  resolve([]);
+              } else {
+                  console.log(`Found ${results.length} countries`);
+                  resolve(results);
+              }
+          });
+      }),
+      // Query for transports
+      new Promise((resolve, reject) => {
+          pool.query('SELECT DISTINCT transport FROM destinations WHERE transport IS NOT NULL AND transport != "" ORDER BY transport', (error, results) => {
+              if (error) {
+                  console.error('Error fetching transports:', error);
+                  resolve([]);
+              } else {
+                  console.log(`Found ${results.length} transports`);
+                  resolve(results);
+              }
+          });
+      })
+  ])
+  .then(([countries, transports]) => {
+      // Log the data for debugging
+      console.log('Countries:', JSON.stringify(countries));
+      console.log('Transports:', JSON.stringify(transports));
+      
+      // Render the page with the data
+      res.render('index', {
+          user: req.session.user,
+          countries: countries,
+          transports: transports
+      });
+  })
+  .catch(error => {
+      console.error('Error in Promise.all:', error);
+      res.render('index', {
+          user: req.session.user,
+          countries: [],
+          transports: []
+      });
+  });
+});
+
+// API route for client-side fallback
+app.get('/api/dropdown-data', (req, res) => {
+  Promise.all([
+      new Promise((resolve, reject) => {
+          connection.query('SELECT DISTINCT country FROM destinations WHERE country IS NOT NULL AND country != "" ORDER BY country', (error, results) => {
+              if (error) {
+                  console.error('Error fetching countries:', error);
+                  resolve([]);
+              } else {
+                  resolve(results);
+              }
+          });
+      }),
+      new Promise((resolve, reject) => {
+          connection.query('SELECT DISTINCT transport FROM destinations WHERE transport IS NOT NULL AND transport != "" ORDER BY transport', (error, results) => {
+              if (error) {
+                  console.error('Error fetching transports:', error);
+                  resolve([]);
+              } else {
+                  resolve(results);
+              }
+          });
+      })
+  ])
+  .then(([countries, transports]) => {
+      res.json({
+          countries: countries,
+          transports: transports
+      });
+  })
+  .catch(error => {
+      console.error('Error in Promise.all:', error);
+      res.status(500).json({ error: error.message });
+  });
+});
+
 app.get('/register', (req, res) => {
   res.render('register');
 });
