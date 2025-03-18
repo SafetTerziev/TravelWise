@@ -11,6 +11,7 @@ const SESSION_SECRET = 'SereneSymphonyTundraEclipseMath2025';
 const EMAIL_USER = 'safetterziev8@gmail.com';
 const EMAIL_PASS = '30102006';
 const ADMIN_EMAIL = 'safetterziev8@gmail.com';
+const stripe  = require('stripe')('sk_test_51QwRMbFtpkraOtDeF2bVkO5DXd4v6Qui6jxN3KqVH1qTcapCS4ArrwVLE7V4KTJrFSZ7ykfD2dHx2yv2fp91PjmO00vZDojKip');
 const port = 4000;
 app.use(express.json());
 
@@ -167,7 +168,6 @@ app.get('/', (req, res) => {
       });
   });
 });
-
 // API route for client-side fallback
 app.get('/api/dropdown-data', (req, res) => {
   Promise.all([
@@ -233,10 +233,6 @@ app.get('/signin', (req, res) => {
   res.render('signin'); 
 });
 
-app.get('/signin', (req, res) => {
-  res.render('signin'); 
-});
-
 app.post('/signin', (req, res) => {
   const { email, password } = req.body;
 
@@ -274,16 +270,6 @@ app.post('/signin', (req, res) => {
       console.log('User signed in:', user);
       res.redirect('/');
     });
-  });
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.log('Error destroying session:', err);
-      return res.status(500).send('Error logging out');
-    }
-    res.redirect('/');
   });
 });
 
@@ -338,6 +324,127 @@ app.get('/profile', isAuthenticated, (req, res) => {
         bookings: bookings
       });
     });
+  });
+});
+
+// Add this route to handle password change
+app.post('/change-password', (req, res) => {
+  // Check if user is logged in
+  if (!req.session.user) {
+      return res.redirect('/signin');
+  }
+  
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const userId = req.session.user.id;
+  
+  // Validate input
+  if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.render('profile', {
+          user: req.session.user,
+          bookings: [],
+          passwordMessage: 'Всички полета са задължителни',
+          passwordError: true
+      });
+  }
+  
+  // Check if new passwords match
+  if (newPassword !== confirmPassword) {
+      return res.render('profile', {
+          user: req.session.user,
+          bookings: [],
+          passwordMessage: 'Новите пароли не съвпадат',
+          passwordError: true
+      });
+  }
+  
+  // Minimum password length
+  if (newPassword.length < 6) {
+      return res.render('profile', {
+          user: req.session.user,
+          bookings: [],
+          passwordMessage: 'Новата парола трябва да бъде поне 6 символа',
+          passwordError: true
+      });
+  }
+  
+  // Get the user's current password from the database
+  connection.query('SELECT password FROM users WHERE id = ?', [userId], (error, results) => {
+      if (error) {
+          console.error('Error fetching user password:', error);
+          return res.render('profile', {
+              user: req.session.user,
+              bookings: [],
+              passwordMessage: 'Възникна грешка. Моля, опитайте отново по-късно.',
+              passwordError: true
+          });
+      }
+      
+      if (results.length === 0) {
+          return res.render('profile', {
+              user: req.session.user,
+              bookings: [],
+              passwordMessage: 'Потребителят не е намерен',
+              passwordError: true
+          });
+      }
+      
+      const hashedPassword = results[0].password;
+      
+      // Compare the current password with the stored hash
+      bcrypt.compare(currentPassword, hashedPassword, (err, isMatch) => {
+          if (err) {
+              console.error('Error comparing passwords:', err);
+              return res.render('profile', {
+                  user: req.session.user,
+                  bookings: [],
+                  passwordMessage: 'Възникна грешка. Моля, опитайте отново по-късно.',
+                  passwordError: true
+              });
+          }
+          
+          if (!isMatch) {
+              return res.render('profile', {
+                  user: req.session.user,
+                  bookings: [],
+                  passwordMessage: 'Текущата парола е неправилна',
+                  passwordError: true
+              });
+          }
+          
+          // Hash the new password
+          bcrypt.hash(newPassword, 10, (err, hashedNewPassword) => {
+              if (err) {
+                  console.error('Error hashing new password:', err);
+                  return res.render('profile', {
+                      user: req.session.user,
+                      bookings: [],
+                      passwordMessage: 'Възникна грешка. Моля, опитайте отново по-късно.',
+                      passwordError: true
+                  });
+              }
+              
+              // Update the password in the database
+              connection.query('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId], (error) => {
+                  if (error) {
+                      console.error('Error updating password:', error);
+                      return res.render('profile', {
+                          user: req.session.user,
+                          bookings: [],
+                          passwordMessage: 'Възникна грешка при обновяването на паролата',
+                          passwordError: true
+                      });
+                  }
+                  
+                  // Password updated successfully
+                  return res.render('profile', {
+                      user: req.session.user,
+                      bookings: [],
+                      passwordMessage: 'Паролата е променена успешно',
+                      passwordError: false
+                  });
+              });
+          });
+      });
   });
 });
 
@@ -531,26 +638,160 @@ app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
   });
 });
 
-app.get('/destination/:id', async(req, res) => {
+app.get('/destination/:id', async(req, res)=> {
   const [destination] = await connection.promise().query(
-      'SELECT * FROM destinations WHERE id = ?',
-      [req.params.id]
-  );
+    'SELECT * FROM destinations WHERE id = ?',
+    [req.params.id]
+);
 
-  if (!destination[0]) {
-      return res.status(404).render('404', {
-          user: req.session.user,
-          message: 'Дестинацията не беше намерена'
-      });
-  }
+if (!destination[0]) {
+    return res.status(404).render('404', {
+        user: req.session.user,
+        message: 'Дестинацията не беше намерена'
+    });
+}
 
-  res.render('destination', {
-      user: req.session.user,
-      destination: destination[0]
-  });
-
+res.render('destination', {
+    user: req.session.user,
+    destination: destination[0]
+});
 });
 
+app.post('/payment/create-checkout-session', async (req, res) => {
+  try {
+      const { destinationName, price, destinationId} = req.body;
+      const userId = req.session.user ? req.session.user.id : null;
+      
+      // Log the received data
+      console.log('Creating checkout session for:', destinationName, 'Price:', price);
+      
+      // Convert price to cents (Stripe requires amounts in cents)
+      const priceInCents = Math.round(parseFloat(price) * 100);
+      
+      // Create a checkout session
+      const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+              {
+                  price_data: {
+                      currency: 'bgn',
+                      product_data: {
+                          name: destinationName,
+                          description: 'Резервация за пътуване',
+                      },
+                      unit_amount: priceInCents,
+                  },
+                  quantity: 1,
+              },
+          ],
+          mode: 'payment',
+          success_url: `${req.protocol}://${req.get('host')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.protocol}://${req.get('host')}/payment-cancel`,
+          metadata: {
+            destinationId: destinationId,
+            userId: userId
+        }
+      });
+      
+      // Log the created session ID
+      console.log('Created session:', session.id);
+      
+      // Return the session ID to the client
+      res.json({ id: session.id });
+  } catch (error) {
+      console.error('Error creating checkout session:', error);
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Add success and cancel routes
+app.get('/payment-success', (req, res) => {
+  const sessionId = req.query.session_id;
+  try {
+    // Retrieve the session from Stripe to get the metadata
+    const session = stripe.checkout.sessions.retrieve(sessionId);
+    
+    // Get the destination ID and user ID from the metadata
+    const destinationId = session.metadata.destinationId;
+    const userId = session.metadata.userId || (req.session.user ? req.session.user.id : null);
+    
+    // If we have both user ID and destination ID, create a booking
+    if (userId && destinationId) {
+        // Insert a new booking record
+        connection.query(
+            'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
+            [userId, destinationId, 'confirmed'],
+            (error, results) => {
+                if (error) {
+                    console.error('Error creating booking:', error);
+                } else {
+                    console.log('Booking created successfully:', results.insertId);
+                }
+                
+                // Render the success page
+                res.render('payment-success', {
+                    sessionId: sessionId,
+                    user: req.session.user,
+                    bookingCreated: !error
+                });
+            }
+        );
+    } else {
+        // If we don't have user ID or destination ID, just render the success page
+        console.warn('Missing user ID or destination ID in session metadata');
+        res.render('payment-success', {
+            sessionId: sessionId,
+            user: req.session.user,
+            bookingCreated: false
+        });
+    }
+} catch (error) {
+    console.error('Error retrieving session or creating booking:', error);
+    res.render('payment-success', {
+        sessionId: sessionId,
+        user: req.session.user,
+        bookingCreated: false,
+        error: error.message
+    });
+}
+});
+
+app.get('/payment-cancel', (req, res) => {
+  // Render a cancel page
+  res.render('payment-cancel', {
+      user: req.session.user
+  });
+});
+
+app.post('/cancel-booking', (req, res) => {
+  // Check if user is logged in
+  if (!req.session.user) {
+      return res.redirect('/signin');
+  }
+  
+  const bookingId = req.body.bookingId;
+  const userId = req.session.user.id;
+  
+  // Update the booking status to 'cancelled'
+  connection.query(
+      'UPDATE bookings SET status = ? WHERE id = ? AND user_id = ?',
+      ['cancelled', bookingId, userId],
+      (error, results) => {
+          if (error) {
+              console.error('Error cancelling booking:', error);
+              return res.redirect('/profile?error=cancel-failed');
+          }
+          
+          if (results.affectedRows === 0) {
+              // No booking was updated, might be because it doesn't exist or doesn't belong to this user
+              return res.redirect('/profile?error=booking-not-found');
+          }
+          
+          // Redirect back to profile with success message
+          res.redirect('/profile?message=booking-cancelled');
+      }
+  );
+});
 
 app.listen(port, () => {
   console.log(`TravelWise app listening at http://localhost:${port}`);

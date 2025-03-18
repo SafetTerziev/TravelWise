@@ -54,16 +54,86 @@
                 <p class="mb-2"><strong>Име:</strong> <%= user.firstName %> <%= user.lastName %></p>
                 <p class="mb-2"><strong>Имейл:</strong> <%= user.email %></p>
             </div>
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-medium mb-4">Промяна на парола</h3>
+                
+                <% if (locals.passwordMessage) { %>
+                    <div class="<%= locals.passwordError ? 'bg-red-100 bg-red-400 text-red-700' : 'bg-green-100 border-green-500 text-green-700' %> px-4 py-3 rounded relative mb-4" role="alert">
+                        <span class="block sm:inline"><%= passwordMessage %></span>
+                    </div>
+                <% } %>
+                
+                <form action="/change-password" method="POST" class="space-y-4">
+                    <div>
+                        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Текуща парола</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">Нова парола</label>
+                        <input type="password" id="newPassword" name="newPassword" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Потвърди нова парола</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            Промени паролата
+                        </button>
+                    </div>
+                </form>
+            </div>
 
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-4 text-gray-700">Моите резервации</h2>
                 <% if (bookings && bookings.length > 0) { %>
-                    <div class="grid gap-4">
+                    <div class="grid gap-6">
                         <% bookings.forEach(booking => { %>
-                            <div class="border rounded p-4 bg-gray-50">
-                                <p class="mb-2"><strong>Дестинация:</strong> <%= booking.destination %></p>
-                                <p class="mb-2"><strong>Дата:</strong> <%= new Date(booking.date).toLocaleDateString('bg-BG') %></p>
-                                <p class="mb-2"><strong>Статус:</strong> <%= booking.status %></p>
+                            <div class="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex flex-col md:flex-row">
+                                    <div class="md:w-1/3">
+                                        <img src="<%= booking.image_url %>" alt="<%= booking.destination_name %>" class="w-full h-48 object-cover">
+                                    </div>
+                                    <div class="p-4 md:w-2/3">
+                                        <div class="flex justify-between items-start">
+                                            <h3 class="text-lg font-semibold text-gray-800"><%= booking.destination_name %></h3>
+                                            <span class="<%= booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800' %> px-2 py-1 rounded-full text-xs font-medium">
+                                                <%= booking.status === 'confirmed' ? 'Потвърдена' : booking.status === 'cancelled' ? 'Отказана' : 'В процес' %>
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-600 mt-1"><%= booking.country %></p>
+                                        <div class="mt-4 grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p class="text-sm text-gray-500">Дата на резервация</p>
+                                                <p class="font-medium"><%= new Date(booking.booking_date).toLocaleDateString('bg-BG') %></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-500">Начална дата</p>
+                                                <p class="font-medium"><%= booking.start_date ? new Date(booking.start_date).toLocaleDateString('bg-BG') : 'Не е посочена' %></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-500">Цена</p>
+                                                <p class="font-medium text-green-600"><%= booking.price %> лв</p>
+                                            </div>
+                                        </div>
+                                        <% if (booking.status !== 'cancelled') { %>
+                                            <div class="mt-4">
+                                                <form action="/cancel-booking" method="POST" onsubmit="return confirm('Сигурни ли сте, че искате да отмените тази резервация?');">
+                                                    <input type="hidden" name="bookingId" value="<%= booking.id %>">
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                        Отмени резервацията
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
                             </div>
                         <% }) %>
                     </div>

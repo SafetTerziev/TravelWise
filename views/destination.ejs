@@ -135,7 +135,6 @@
                                     <span class="text-sm">лв.</span>
                                 </div>
                             </div>
-
                             <button id="payButton" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
                                 РЕЗЕРВИРАЙ
                             </button>
@@ -184,31 +183,46 @@
     </footer>
     <script>
         var stripe = Stripe('pk_test_51QwRMbFtpkraOtDeC38F1MNtw5wx26moYB9frAI1Yg56QDAuhOSaa7ISN67MxaQpzdHqfbi88nRwH1u7p9bQMZ3N00kgzaLAe1');
-        console.log('Stripe:', stripe);
-        document.getElementById("payButton").addEventListener("click", async () => {
-        const response = await fetch("/payment/create-checkout-session", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                destinationName: "<%= destination.name %>",
-                price: "<%= destination.price %>",
-            }),
-        });
-
-        const session = await response.json();
-        window.location.href = `https://checkout.stripe.com/pay/${session.id}`;
-        const urlParams = new URLSearchParams(window.location.search);
-        const paymentStatus = urlParams.get('payment_status');
-
-        if (paymentStatus === 'success') {
-            alert('Payment was successful! Thank you for your purchase.');
-        } else if (paymentStatus === 'cancel') {
-            alert('Payment was canceled. Please try again.');
-        }
+        console.log('Stripe initialized');
         
-    });
+        document.getElementById("payButton").addEventListener("click", async () => {
+            try {
+                const destinationId = "<%= destination.id %>";
+                console.log('Pay button clicked');
+                
+                const response = await fetch("/payment/create-checkout-session", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        destinationName: "<%= destination.name %>",
+                        price: "<%= destination.price %>",
+                        destinationId: destinationId,
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const session = await response.json();
+                console.log('Session created:', session);
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+                
+                if (result.error) {
+                    console.error('Error redirecting to checkout:', result.error);
+                    alert('Error redirecting to checkout: ' + result.error.message);
+                }
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                alert('Error processing payment: ' + error.message);
+            }
+        });
     </script>
 </body>
 </html>
