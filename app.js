@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const SESSION_SECRET = 'SereneSymphonyTundraEclipseMath2025';
 const EMAIL_USER = 'safetterziev8@gmail.com';
 const EMAIL_PASS = '30102006';
@@ -14,11 +15,12 @@ const ADMIN_EMAIL = 'safetterziev8@gmail.com';
 const stripe  = require('stripe')('sk_test_51QwRMbFtpkraOtDeF2bVkO5DXd4v6Qui6jxN3KqVH1qTcapCS4ArrwVLE7V4KTJrFSZ7ykfD2dHx2yv2fp91PjmO00vZDojKip');
 const port = 4000;
 app.use(express.json());
-
+require('dotenv').config();
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 app.use(session({
   secret: SESSION_SECRET,
@@ -287,8 +289,32 @@ app.get('/profile', isAuthenticated, (req, res) => {
   const userId = req.session.user.id;
   console.log(`Fetching profile for user ID: ${userId}`);
 
-  // Fetch user's reservations
-  const bookingsQuery = 'SELECT * FROM bookings WHERE user_id = ?';
+  // Get any messages or errors from query parameters
+  const message = req.query.message;
+  const error = req.query.error;
+
+  // Improved query to fetch bookings with destination details
+  const bookingsQuery = `
+    SELECT 
+      b.id, 
+      b.booking_date, 
+      b.status, 
+      d.id AS destination_id,
+      d.name AS destination_name, 
+      d.description,
+      d.country, 
+      d.image_url, 
+      d.price, 
+      d.transport,
+      d.duration,
+      d.start_date,
+      d.type
+    FROM bookings b
+    LEFT JOIN destinations d ON b.destination_id = d.id
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `;
+
   connection.query(bookingsQuery, [userId], (bookingsErr, bookings) => {
     if (bookingsErr) {
       console.error('Error fetching bookings:', bookingsErr);
@@ -296,6 +322,20 @@ app.get('/profile', isAuthenticated, (req, res) => {
     }
 
     console.log(`Found ${bookings.length} bookings for user ID: ${userId}`);
+
+    // Format the booking data for display
+    const formattedBookings = bookings.map(booking => {
+      return {
+        ...booking,
+        booking_date_formatted: new Date(booking.booking_date).toLocaleDateString('bg-BG'),
+        start_date_formatted: booking.start_date ? new Date(booking.start_date).toLocaleDateString('bg-BG') : 'Не е посочена',
+        price_formatted: booking.price ? (typeof booking.price === 'number' ? booking.price.toFixed(2) : parseFloat(booking.price).toFixed(2)) : '0.00',
+        status_text: booking.status === 'confirmed' ? 'Потвърдена' : 
+                     booking.status === 'cancelled' ? 'Отказана' : 'В процес',
+        status_color: booking.status === 'confirmed' ? 'green' : 
+                      booking.status === 'cancelled' ? 'red' : 'yellow'
+      };
+    });
 
     // Fetch user details
     const userQuery = 'SELECT first_name, last_name, email, role FROM users WHERE id = ?';
@@ -319,12 +359,43 @@ app.get('/profile', isAuthenticated, (req, res) => {
           firstName: userDetails.first_name,
           lastName: userDetails.last_name,
           email: userDetails.email,
-          role: userDetails.role // Ensure role is passed to the template
+          role: userDetails.role
         },
-        bookings: bookings
+        bookings: formattedBookings,
+        message: message,
+        error: error
       });
     });
   });
+});
+
+// Add a route to handle booking cancellations
+app.post('/cancel-booking', isAuthenticated, (req, res) => {
+  const bookingId = req.body.bookingId;
+  const userId = req.session.user.id;
+  
+  console.log(`Attempting to cancel booking ID: ${bookingId} for user ID: ${userId}`);
+  
+  // Update the booking status to 'cancelled'
+  connection.query(
+    'UPDATE bookings SET status = ? WHERE id = ? AND user_id = ?',
+    ['cancelled', bookingId, userId],
+    (error, results) => {
+      if (error) {
+        console.error('Error cancelling booking:', error);
+        return res.redirect('/profile?error=cancel-failed');
+      }
+      
+      if (results.affectedRows === 0) {
+        console.log('No booking was updated - might not exist or belong to this user');
+        return res.redirect('/profile?error=booking-not-found');
+      }
+      
+      console.log(`Successfully cancelled booking ID: ${bookingId}`);
+      // Redirect back to profile with success message
+      res.redirect('/profile?message=booking-cancelled');
+    }
+  );
 });
 
 // Add this route to handle password change
@@ -505,19 +576,6 @@ app.get('/contact', (req, res) => {
   });
 });
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
 app.post('/submit-inquiry', async (req, res) => {
   try {
     if (!req.session.user) {
@@ -525,17 +583,18 @@ app.post('/submit-inquiry', async (req, res) => {
     }
 
     const { name, email, phone, message } = req.body;
+    const user = req.session.user;
 
     // Validate input
     if (!name || !email || !phone || !message) {
       return res.status(400).send('Всички полета са задължителни');
     }
 
-    const mailOptions = {
-      from: `"${name}" <${email}>`,
-      to: ADMIN_EMAIL,
-      subject: 'Ново запитване от TravelWise',
-      text: `
+    // Send email to admin
+    await sendEmail(
+      process.env.ADMIN_EMAIL || 'info@travelwise.bg',
+      'Ново запитване от TravelWise',
+      `
         Ново запитване от уебсайта на TravelWise:
         
         Име: ${name}
@@ -545,27 +604,50 @@ app.post('/submit-inquiry', async (req, res) => {
         Съобщение:
         ${message}
       `,
-      html: `
+      `
         <h2>Ново запитване от уебсайта на TravelWise:</h2>
         <p><strong>Име:</strong> ${name}</p>
         <p><strong>Имейл:</strong> ${email}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Съобщение:</strong></p>
         <p>${message}</p>
-      `
-    };
-
-    // Send email
-    await transporter.sendMail(mailOptions);
+      `,
+      email // Pass the user's email as replyTo
+    );
     
-    // Redirect with success message
-    res.redirect('/contact?success=true');
-
+    // Rest of your code...
   } catch (error) {
-    console.error('Грешка при изпращане на имейл:', error);
-    res.status(500).send('Грешка при изпращане на запитването. Моля, опитайте отново по-късно.');
+    // Error handling...
   }
 });
+
+// Updated sendEmail function with replyTo parameter
+async function sendEmail(to, subject, text, html, replyTo = null) {
+  try {
+    const msg = {
+      to: to,
+      from: 'info@travelwise.bg', // Your verified sender
+      subject: subject,
+      text: text,
+      html: html,
+    };
+    
+    // Add replyTo if provided
+    if (replyTo) {
+      msg.replyTo = replyTo;
+    }
+    
+    const response = await sgMail.send(msg);
+    console.log('Email sent successfully');
+    return response;
+  } catch (error) {
+    console.error('Error sending email with SendGrid:', error);
+    if (error.response) {
+      console.error(error.response.body);
+    }
+    throw error;
+  }
+}
 
 app.get('/exotic', async(req, res) => {
   const [destinations] = await connection.promise().query(
@@ -688,8 +770,8 @@ app.post('/payment/create-checkout-session', async (req, res) => {
           success_url: `${req.protocol}://${req.get('host')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${req.protocol}://${req.get('host')}/payment-cancel`,
           metadata: {
-            destinationId: destinationId,
-            userId: userId
+            destinationId: destinationId.toString(),
+            userId: userId ? userId.toString() : null
         }
       });
       
@@ -705,55 +787,117 @@ app.post('/payment/create-checkout-session', async (req, res) => {
 });
 
 // Add success and cancel routes
-app.get('/payment-success', (req, res) => {
+app.get('/payment-success', async (req, res) => {
   const sessionId = req.query.session_id;
+  // Get destination_id and user_id from query parameters as fallback
+  const destination_id = req.query.destination_id;
+  const user_id = req.query.user_id || (req.session.user ? req.session.user.id : null);
+  
+  console.log('Payment success with params:', {
+      sessionId,
+      destination_id,
+      user_id
+  });
+  
   try {
-    // Retrieve the session from Stripe to get the metadata
-    const session = stripe.checkout.sessions.retrieve(sessionId);
-    
-    // Get the destination ID and user ID from the metadata
-    const destinationId = session.metadata.destinationId;
-    const userId = session.metadata.userId || (req.session.user ? req.session.user.id : null);
-    
-    // If we have both user ID and destination ID, create a booking
-    if (userId && destinationId) {
-        // Insert a new booking record
-        connection.query(
-            'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
-            [userId, destinationId, 'confirmed'],
-            (error, results) => {
-                if (error) {
-                    console.error('Error creating booking:', error);
-                } else {
-                    console.log('Booking created successfully:', results.insertId);
-                }
-                
-                // Render the success page
-                res.render('payment-success', {
-                    sessionId: sessionId,
-                    user: req.session.user,
-                    bookingCreated: !error
-                });
-            }
-        );
-    } else {
-        // If we don't have user ID or destination ID, just render the success page
-        console.warn('Missing user ID or destination ID in session metadata');
-        res.render('payment-success', {
-            sessionId: sessionId,
-            user: req.session.user,
-            bookingCreated: false
-        });
-    }
-} catch (error) {
-    console.error('Error retrieving session or creating booking:', error);
-    res.render('payment-success', {
-        sessionId: sessionId,
-        user: req.session.user,
-        bookingCreated: false,
-        error: error.message
-    });
-}
+      // Use await with the Stripe API call since it's asynchronous
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      console.log('Retrieved session:', {
+          id: session.id,
+          metadata: session.metadata
+      });
+      
+      // Get the destination_id and user_id from the metadata or query parameters
+      // Note: In your create-checkout-session, you're using destinationId and userId (camelCase)
+      // but your database columns are destination_id and user_id (snake_case)
+      const final_destination_id = (session.metadata && session.metadata.destinationId) || destination_id;
+      const final_user_id = (session.metadata && session.metadata.userId) || user_id;
+      
+      console.log('Final IDs for booking:', {
+          destination_id: final_destination_id,
+          user_id: final_user_id
+      });
+      
+      // If we have both user_id and destination_id, create a booking
+      if (final_user_id && final_destination_id) {
+          // Use pool.query instead of connection.query for consistency
+          connection.query(
+              'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
+              [final_user_id, final_destination_id, 'confirmed'],
+              (error, results) => {
+                  if (error) {
+                      console.error('Error creating booking:', error);
+                      return res.render('payment-success', {
+                          sessionId: sessionId,
+                          user: req.session.user,
+                          bookingCreated: false,
+                          error: error.message
+                      });
+                  }
+                  
+                  console.log('Booking created successfully:', results.insertId);
+                  
+                  // Render the success page
+                  res.render('payment-success', {
+                      sessionId: sessionId,
+                      user: req.session.user,
+                      bookingCreated: true,
+                      bookingId: results.insertId
+                  });
+              }
+          );
+      } else {
+          // If we don't have user_id or destination_id, just render the success page
+          console.warn('Missing user_id or destination_id for booking');
+          res.render('payment-success', {
+              sessionId: sessionId,
+              user: req.session.user,
+              bookingCreated: false,
+              error: 'Missing user_id or destination_id for booking'
+          });
+      }
+  } catch (error) {
+      console.error('Error retrieving session or creating booking:', error);
+      
+      // If we have destination_id and user_id from query parameters, try to create booking anyway
+      if (destination_id && user_id) {
+          console.log('Attempting to create booking from query parameters');
+          
+          connection.query(
+              'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
+              [user_id, destination_id, 'confirmed'],
+              (dbError, results) => {
+                  if (dbError) {
+                      console.error('Error creating booking from query parameters:', dbError);
+                      return res.render('payment-success', {
+                          sessionId: sessionId,
+                          user: req.session.user,
+                          bookingCreated: false,
+                          error: `Error retrieving session and creating booking: ${error.message}, DB Error: ${dbError.message}`
+                      });
+                  }
+                  
+                  console.log('Booking created successfully from query parameters:', results.insertId);
+                  
+                  // Render the success page
+                  res.render('payment-success', {
+                      sessionId: sessionId,
+                      user: req.session.user,
+                      bookingCreated: true,
+                      bookingId: results.insertId,
+                      note: 'Created from query parameters due to session retrieval error'
+                  });
+              }
+          );
+      } else {
+          res.render('payment-success', {
+              sessionId: sessionId,
+              user: req.session.user,
+              bookingCreated: false,
+              error: `Error retrieving session: ${error.message}`
+          });
+      }
+  }
 });
 
 app.get('/payment-cancel', (req, res) => {
