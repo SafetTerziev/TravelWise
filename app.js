@@ -592,7 +592,7 @@ app.post('/submit-inquiry', async (req, res) => {
 
     // Send email to admin
     await sendEmail(
-      process.env.ADMIN_EMAIL || 'info@travelwise.bg',
+      process.env.ADMIN_EMAIL || 'infowisetravel@gmail.com',
       'Ново запитване от TravelWise',
       `
         Ново запитване от уебсайта на TravelWise:
@@ -615,9 +615,12 @@ app.post('/submit-inquiry', async (req, res) => {
       email // Pass the user's email as replyTo
     );
     
-    // Rest of your code...
+    // Redirect with success message
+    res.redirect('/contact?success=true');
+
   } catch (error) {
-    // Error handling...
+    console.error('Грешка при изпращане на имейл:', error);
+    res.redirect('/contact?error=true');
   }
 });
 
@@ -626,7 +629,7 @@ async function sendEmail(to, subject, text, html, replyTo = null) {
   try {
     const msg = {
       to: to,
-      from: 'info@travelwise.bg', // Your verified sender
+      from: 'infowisetravel@gmail.com', // Your verified sender
       subject: subject,
       text: text,
       html: html,
