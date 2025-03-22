@@ -6,7 +6,7 @@
     <title>Вход в акаунт - TravelWise</title>
     <link href="/css/styles.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
+<body class="flex flex-col min-h-screen bg-gray-100">
 
     <!-- Header -->
     <header class="bg-blue-600 text-white py-2">
@@ -18,25 +18,52 @@
     </header>
 
     <!-- Sign-in Form -->
-    <div class="max-w-md mx-auto mt-16 bg-white p-8 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold text-center mb-6">Влезте в акаунта си</h2>
-        
-        <form action="/signin" method="POST">
-            <div class="mb-4">
-                <label for="email" class="block text-sm font-semibold text-gray-700">Имейл</label>
-                <input type="email" id="email" name="email" required class="w-full p-3 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="example@mail.com">
-            </div>
+    <main class="flex-grow flex justify-center items-center">
+        <div class="w-full max-w-md mx-auto mt-16 bg-white p-10 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-center mb-6">Влезте в акаунта си</h2>
             
-            <div class="mb-6">
-                <label for="password" class="block text-sm font-semibold text-gray-700">Парола</label>
-                <input type="password" id="password" name="password" required class="w-full p-3 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Вашата парола">
-            </div>
+            <!-- Error message section -->
+            <% if (locals.error) { %>
+                <div id="errorAlert" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 relative" role="alert">
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <p class="text-sm"><%= error %></p>
+                        <button type="button" class="absolute top-0 right-0 mt-4 mr-4" onclick="document.getElementById('errorAlert').style.display='none'">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            <% } %>
+    
+            <form action="/signin" method="POST">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-semibold text-gray-700">Имейл</label>
+                    <input type="email" id="email" name="email" required class="w-full p-3 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="example@mail.com">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-semibold text-gray-700">Парола</label>
+                    <input type="password" id="password" name="password" required class="w-full p-3 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Вашата парола">
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline transition duration-300">Влезте</button>
+            </form>
             
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline transition duration-300">Влезте</button>
-        </form>
-        
-        <p class="mt-4 text-center text-sm">Нямате акаунт? <a href="/register" class="text-indigo-500 hover:text-indigo-600">Регистрирайте се</a></p>
-    </div>
+            <p class="mt-4 text-center text-sm">Нямате акаунт? <a href="/register" class="text-indigo-500 hover:text-indigo-600">Регистрирайте се</a></p>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-4 mt-0">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 TravelWise. Всички права запазени.</p>
+        </div>
+    </footer>
 
 </body>
 </html>

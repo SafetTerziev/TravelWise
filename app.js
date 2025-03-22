@@ -207,72 +207,163 @@ app.get('/api/dropdown-data', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  res.render('register');
+  res.render('register', {error: null, success: null});
 });
-app.post('/register', (req, res) => {
-  const { first_name, last_name, email, password } = req.body;
+app.post('/register', async (req, res) => {
+  try {
+    const { first_name, last_name, email, password } = req.body;
 
-  // Hash the password before saving
-  bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) {
-      console.log('Error hashing password:', err);
-      return res.status(500).send('Server error');
+    // Validate input
+    if (!first_name || !last_name || !email || !password) {
+      return res.render('register', { 
+        error: 'Моля, попълнете всички полета',
+        success: null
+      });
     }
-  
-    // Insert user data into the database
-    const query = 'INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)';
-    connection.query(query, [first_name, last_name, email, hashedPassword], (err, result) => {
+    
+    // Check if password is too short
+    if (password.length < 6) {
+      return res.render('register', { 
+        error: 'Паролата трябва да бъде поне 6 символа',
+        success: null
+      });
+    }
+
+    // Check if email already exists
+    const checkEmailQuery = 'SELECT * FROM users WHERE email = ?';
+    connection.query(checkEmailQuery, [email], async (err, results) => {
       if (err) {
-        console.log('Error inserting user into database:', err);
-        return res.status(500).send('Error saving user');
+        console.log('Error checking email:', err);
+        return res.render('register', { 
+          error: 'Възникна грешка при проверката на имейла',
+          success: null
+        });
       }
-      console.log('User registered:', result);
-      res.redirect('/signin'); // Redirect to the sign-in page after successful registration
-    });
-  })});
 
-app.get('/signin', (req, res) => {
-  res.render('signin'); 
+      if (results.length > 0) {
+        return res.render('register', { 
+          error: 'Този имейл вече е регистриран',
+          success: null
+        });
+      }
+
+      // Hash the password
+      bcrypt.hash(password, 10, (err, hashedPassword) => {
+        if (err) {
+          console.log('Error hashing password:', err);
+          return res.render('register', { 
+            error: 'Възникна грешка при обработката на паролата',
+            success: null
+          });
+        }
+      
+        // Insert user data into the database
+        const query = 'INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)';
+        connection.query(query, [first_name, last_name, email, hashedPassword], (err, result) => {
+          if (err) {
+            console.log('Error inserting user into database:', err);
+            return res.render('register', { 
+              error: 'Възникна грешка при регистрацията',
+              success: null
+            });
+          }
+          
+          console.log('User registered:', result);
+          
+          // Show success message on the registration page
+          // The JavaScript will handle the redirect after a delay
+          return res.render('register', {
+            error: null,
+            success: 'Регистрацията е успешна! Ще бъдете пренасочени към страницата за вход.'
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.render('register', { 
+      error: 'Възникна неочаквана грешка. Моля, опитайте отново.',
+      success: null
+    });
+  }
 });
 
-app.post('/signin', (req, res) => {
-  const { email, password } = req.body;
-
-  const query = 'SELECT * FROM users WHERE email = ?';
-  connection.query(query, [email], (err, results) => {
-    if (err) {
-      console.log('Error fetching user:', err);
-      return res.status(500).send('Server error');
+  app.get('/signin', (req, res) => {
+    // If user is already logged in, redirect to home
+    if (req.session.user) {
+      return res.redirect('/');
     }
+    
+    res.render('signin', { 
+      error: null,
+      user: null
+    });
+  });
+
+app.post('/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.render('signin', { 
+        error: 'Моля, въведете имейл и парола',
+        user: null
+      });
+    }
+
+    // Convert callback to Promise for cleaner code
+    const query = 'SELECT * FROM users WHERE email = ?';
+    const [results] = await new Promise((resolve, reject) => {
+      connection.query(query, [email], (err, results) => {
+        if (err) reject(err);
+        else resolve([results]);
+      });
+    });
 
     if (results.length === 0) {
-      return res.status(400).send('User not found');
+      return res.render('signin', { 
+        error: 'Потребителят не е намерен',
+        user: null
+      });
     }
 
     const user = results[0];
-    // Compare password with hashed password stored in the database
-    bcrypt.compare(password, user.password, (err, isMatch) => {
-      if (err) {
-        console.log('Error comparing password:', err);
-        return res.status(500).send('Server error');
-      }
-
-      if (!isMatch) {
-        return res.status(400).send('Invalid credentials');
-      }
-
-      req.session.user = {
-        id: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        role: user.role // Ensure role is set here
-      };
-
-      console.log('User signed in:', user);
-      res.redirect('/');
+    
+    // Convert bcrypt.compare to Promise
+    const isMatch = await new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) reject(err);
+        else resolve(isMatch);
+      });
     });
-  });
+
+    if (!isMatch) {
+      return res.render('signin', { 
+        error: 'Невалидни данни за вход',
+        user: null
+      });
+    }
+
+    // Set user session
+    req.session.user = {
+      id: user.id,
+      firstName: user.first_name, // Using the correct column name from your database
+      lastName: user.last_name,   // Using the correct column name from your database
+      email: user.email,
+      role: user.role
+    };
+
+    console.log('User signed in:', user);
+    res.redirect('/');
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    res.render('signin', { 
+      error: 'Възникна грешка при входа. Моля, опитайте отново.',
+      user: null
+    });
+  }
 });
 
 app.get('/logout', (req, res) => {
@@ -533,9 +624,10 @@ app.post('/admin/add-destination', isAdmin, (req, res) => {
   const { name, country, description, image_url, type, price, transport, duration, start_date } = req.body;
   const numericPrice = parseFloat(price);
     
-    if (isNaN(numericPrice)) {
-        return res.status(400).json({ error: 'Invalid price' });
-    }
+  if (isNaN(numericPrice)) {
+      return res.status(400).json({ error: 'Invalid price' });
+  }
+  
   connection.query(
       'INSERT INTO destinations (name, country, description, image_url, type, price, transport, duration, start_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [name, country, description, image_url, type, price, transport, duration, start_date],
@@ -544,7 +636,8 @@ app.post('/admin/add-destination', isAdmin, (req, res) => {
               console.error('Error adding destination:', error);
               return res.status(500).json({ error: 'Internal server error' });
           }
-          res.redirect('/admin-dashboard');
+          // Redirect with success message as query parameter
+          res.redirect('/admin-dashboard?success=add');
       }
   );
 });
@@ -558,7 +651,10 @@ app.delete('/admin/delete-destination/:id', isAdmin, (req, res) => {
           return res.status(500).json({ success: false, error: 'Internal server error' });
       }
       if (result.affectedRows > 0) {
-          res.json({ success: true });
+          res.json({ 
+              success: true, 
+              message: 'Дестинацията е премахната успешно!' 
+          });
       } else {
           res.status(404).json({ success: false, error: 'Destination not found' });
       }
@@ -683,7 +779,35 @@ res.render('types/oneDay', {
 });
 
 app.get('/admin-dashboard', isAdmin, (req, res) => {
-  res.render('adminDashboard');
+  // Get success message from query parameters
+  const successType = req.query.success;
+  let successMessage = null;
+  
+  if (successType === 'add') {
+      successMessage = 'Дестинацията е добавена успешно!';
+  }
+  
+  // Fetch destinations
+  connection.query('SELECT * FROM destinations', (error, destinations) => {
+      if (error) {
+          console.error('Error fetching destinations:', error);
+          return res.status(500).send('Internal Server Error');
+      }
+      
+      // Fetch users
+      connection.query('SELECT * FROM users', (error, users) => {
+          if (error) {
+              console.error('Error fetching users:', error);
+              return res.status(500).send('Internal Server Error');
+          }
+          
+          res.render('adminDashboard', { 
+              destinations, 
+              users,
+              successMessage // Pass success message to template
+          });
+      });
+  });
 });
 
 app.get('/admin/destinations', isAdmin, (req, res) => {
@@ -707,19 +831,60 @@ app.get('/admin/users', isAdmin, (req, res) => {
   });
 });
 
-//Delete user
+// Delete user
+// Delete user with cascade
 app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
   const { id } = req.params;
-  connection.query('DELETE FROM users WHERE id = ?', [id], (error, result) => {
+  
+  // Start a transaction to ensure data integrity
+  connection.beginTransaction(err => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+    
+    // First, check if the user exists
+    connection.query('SELECT * FROM users WHERE id = ?', [id], (error, results) => {
       if (error) {
-          console.error('Error deleting user:', error);
-          return res.status(500).json({ success: false, error: 'Internal server error' });
+        return connection.rollback(() => {
+          console.error('Error checking user:', error);
+          res.status(500).json({ success: false, error: 'Internal server error' });
+        });
       }
-      if (result.affectedRows > 0) {
-          res.json({ success: true });
-      } else {
+      
+      if (results.length === 0) {
+        return connection.rollback(() => {
           res.status(404).json({ success: false, error: 'User not found' });
+        });
       }
+      
+      // Delete related records if needed (example: delete user's bookings)
+      // connection.query('DELETE FROM bookings WHERE user_id = ?', [id], (error) => { ... });
+      
+      // Finally, delete the user
+      connection.query('DELETE FROM users WHERE id = ?', [id], (error, result) => {
+        if (error) {
+          return connection.rollback(() => {
+            console.error('Error deleting user:', error);
+            res.status(500).json({ success: false, error: 'Internal server error', details: error.message });
+          });
+        }
+        
+        connection.commit(err => {
+          if (err) {
+            return connection.rollback(() => {
+              console.error('Error committing transaction:', err);
+              res.status(500).json({ success: false, error: 'Internal server error' });
+            });
+          }
+          
+          res.json({ 
+            success: true, 
+            message: 'Потребителят е премахнат успешно!' 
+          });
+        });
+      });
+    });
   });
 });
 
