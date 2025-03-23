@@ -661,6 +661,31 @@ app.delete('/admin/delete-destination/:id', isAdmin, (req, res) => {
   });
 });
 
+app.get('/admin/bookings', isAdmin, (req, res) => {
+  const query = `
+      SELECT 
+          bookings.id, 
+          users.first_name AS customer_name, 
+          users.email AS customer_email, 
+          destinations.name AS destination, 
+          bookings.booking_date, 
+          bookings.status
+      FROM bookings
+      JOIN users ON bookings.user_id = users.id
+      JOIN destinations ON bookings.destination_id = destinations.id
+  `;
+
+  connection.query(query, (error, results) => {
+      if (error) {
+          console.error('Error fetching bookings:', error);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+      res.json(results);
+  });
+});
+
+
+
 app.get('/aboutus', (req, res) => {
   res.render('aboutus');
 });
@@ -887,6 +912,24 @@ app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
     });
   });
 });
+
+app.get('/admin/destination/:id', isAdmin, (req, res) => {
+  const { id } = req.params;
+
+  connection.query('SELECT * FROM destinations WHERE id = ?', [id], (error, results) => {
+      if (error) {
+          console.error('Error fetching destination:', error);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'Destination not found' });
+      }
+
+      res.json(results[0]); // Връща само първата дестинация
+  });
+});
+
 
 app.get('/destination/:id', async(req, res)=> {
   const [destination] = await connection.promise().query(

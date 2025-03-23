@@ -17,6 +17,36 @@
         .alert-animate {
             animation: fadeIn 0.3s ease-out forwards;
         }
+        
+        /* Modal styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Tab styles */
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
     </style>
 </head>
 <!-- Header -->
@@ -55,6 +85,7 @@
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6">Админ Панел</h1>
+        
         <!-- Success Message Alert -->
         <% if (locals.successMessage) { %>
             <div id="successAlert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 relative alert-animate" role="alert">
@@ -72,98 +103,209 @@
                     </button>
                 </div>
             </div>
-            <% } %>
+        <% } %>
     
-            <!-- Dynamic Success Message (for AJAX operations) -->
-            <div id="dynamicSuccessAlert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 relative alert-animate" role="alert" style="display: none;">
-                <div class="flex items-center">
-                    <div class="mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+        <!-- Dynamic Success Message (for AJAX operations) -->
+        <div id="dynamicSuccessAlert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 relative alert-animate" role="alert" style="display: none;">
+            <div class="flex items-center">
+                <div class="mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <p id="dynamicSuccessMessage" class="text-sm"></p>
+                <button type="button" class="absolute top-0 right-0 mt-4 mr-4" onclick="document.getElementById('dynamicSuccessAlert').style.display='none'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs for admin panel sections -->
+        <div class="mb-6 border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                <li class="mr-2">
+                    <a href="#" onclick="showTab('offers')" id="offers-tab" class="inline-block p-4 tab-active">
+                        Оферти
+                    </a>
+                </li>
+                <li class="mr-2">
+                    <a href="#" onclick="showTab('users')" id="users-tab" class="inline-block p-4">
+                        Потребители
+                    </a>
+                </li>
+                <li class="mr-2">
+                    <a href="#" onclick="showTab('bookings')" id="bookings-tab" class="inline-block p-4">
+                        Резервации
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Offers Tab Content -->
+        <div id="offers-content" class="tab-content">
+            <!-- Add new offer form -->
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Добави нова оферта</h2>
+                <form action="/admin/add-destination" method="POST">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name" class="block mb-2">Име на дестинацията:</label>
+                            <input type="text" id="name" name="name" required class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="country" class="block mb-2">Държава:</label>
+                            <input type="text" id="country" name="country" required class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="description" class="block mb-2">Описание:</label>
+                            <textarea id="description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="image_url" class="block mb-2">URL на изображението:</label>
+                            <input type="url" id="image_url" name="image_url" required class="w-full px-3 py-2 border rounded">
+                            <p class="mt-1 text-sm text-gray-500">
+                                Поддържани формати: .jpg, .jpeg, .png, .webp
+                            </p>
+                        </div>
+                        <div>
+                            <label for="type" class="block mb-2">Тип:</label>
+                            <select id="type" name="type" required class="w-full px-3 py-2 border rounded">
+                                <option value="oneDay">Еднодневна</option>
+                                <option value="excursion">Екскурзия</option>
+                                <option value="exotic">Екзотична</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="price" class="block mb-2">Цена:</label>
+                            <input type="number" id="price" name="price" required class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="transport" class="block mb-2">Транспорт:</label>
+                            <select id="transport" name="transport" required class="w-full px-3 py-2 border rounded">
+                                <option value="Самолет">Самолет</option>
+                                <option value="Автобус">Автобус</option>
+                                <option value="Собствен">Собствен</option>
+                            </select>                  
+                        </div>
+                        <div>
+                            <label for="duration" class="block mb-2">Продължителност:</label>
+                            <input type="text" id="duration" name="duration" required class="w-full px-3 py-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="start_date" class="block mb-2">Начална дата:</label>
+                            <input type="date" id="start_date" name="start_date" required class="w-full px-3 py-2 border rounded">
+                        </div>
                     </div>
-                    <p id="dynamicSuccessMessage" class="text-sm"></p>
-                    <button type="button" class="absolute top-0 right-0 mt-4 mr-4" onclick="document.getElementById('dynamicSuccessAlert').style.display='none'">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                        Добави оферта
                     </button>
+                </form>
+            </div>
+
+            <!-- Existing offers -->
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
+                <div id="destinations-list">
+                    <!-- Destinations will be loaded here via JavaScript -->
                 </div>
             </div>
-        <!-- Add new offer form -->
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Добави нова оферта</h2>
-            <form action="/admin/add-destination" method="POST">
+        </div>
+
+        <!-- Users Tab Content -->
+        <div id="users-content" class="tab-content hidden">
+            <!-- Registered users -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Регистрирани потребители</h2>
+                <div id="users-list">
+                    <!-- Users will be loaded here via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Tab Content -->
+        <div id="bookings-content" class="tab-content hidden">
+            <!-- Bookings -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Резервации</h2>
+                <div id="bookings-list">
+                    <!-- Bookings will be loaded here via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Destination Modal -->
+    <div id="editModal" class="hidden">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Редактиране на оферта</h2>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="edit-destination-form" method="POST" action="/admin/edit-destination">
+                <input type="hidden" id="edit_id" name="id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="name" class="block mb-2">Име на дестинацията:</label>
-                        <input type="text" id="name" name="name" required class="w-full px-3 py-2 border rounded">
+                        <label for="edit_name" class="block mb-2">Име на дестинацията:</label>
+                        <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 border rounded">
                     </div>
                     <div>
-                        <label for="country" class="block mb-2">Държава:</label>
-                        <input type="text" id="country" name="country" required class="w-full px-3 py-2 border rounded">
+                        <label for="edit_country" class="block mb-2">Държава:</label>
+                        <input type="text" id="edit_country" name="country" required class="w-full px-3 py-2 border rounded">
                     </div>
                     <div>
-                        <label for="description" class="block mb-2">Описание:</label>
-                        <textarea id="description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label for="image_url" class="block mb-2">URL на изображението:</label>
-                        <input type="url" id="image_url" name="image_url" required class="w-full px-3 py-2 border rounded">
-                        <p class="mt-1 text-sm text-gray-500">
-                            Поддържани формати: .jpg, .jpeg, .png, .webp
-                        </p>
+                        <label for="edit_description" class="block mb-2">Описание:</label>
+                        <textarea id="edit_description" name="description" required class="w-full px-3 py-2 border rounded"></textarea>
                     </div>
                     <div>
-                        <label for="type" class="block mb-2">Тип:</label>
-                        <select id="type" name="type" required class="w-full px-3 py-2 border rounded">
+                        <label for="edit_image_url" class="block mb-2">URL на изображението:</label>
+                        <input type="url" id="edit_image_url" name="image_url" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="edit_type" class="block mb-2">Тип:</label>
+                        <select id="edit_type" name="type" required class="w-full px-3 py-2 border rounded">
                             <option value="oneDay">Еднодневна</option>
                             <option value="excursion">Екскурзия</option>
                             <option value="exotic">Екзотична</option>
                         </select>
                     </div>
                     <div>
-                        <label for="price" class="block mb-2">Цена:</label>
-                        <input type="number" id="price" name="price" required class="w-full px-3 py-2 border rounded">
+                        <label for="edit_price" class="block mb-2">Цена:</label>
+                        <input type="number" id="edit_price" name="price" required class="w-full px-3 py-2 border rounded">
                     </div>
                     <div>
-                        <label for="transport" class="block mb-2">Транспорт:</label>
-                        <select id="transport" name="transport" required class="w-full px-3 py-2 border rounded"><option value="Самолет">Самолет</option>
+                        <label for="edit_transport" class="block mb-2">Транспорт:</label>
+                        <select id="edit_transport" name="transport" required class="w-full px-3 py-2 border rounded">
+                            <option value="Самолет">Самолет</option>
                             <option value="Автобус">Автобус</option>
                             <option value="Собствен">Собствен</option>
                         </select>                  
-                     </div>
-                    <div>
-                        <label for="duration" class="block mb-2">Продължителност:</label>
-                        <input type="text" id="duration" name="duration" required class="w-full px-3 py-2 border rounded">
                     </div>
                     <div>
-                        <label for="start_date" class="block mb-2">Начална дата:</label>
-                        <input type="date" id="start_date" name="start_date" required class="w-full px-3 py-2 border rounded">
+                        <label for="edit_duration" class="block mb-2">Продължителност:</label>
+                        <input type="text" id="edit_duration" name="duration" required class="w-full px-3 py-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="edit_start_date" class="block mb-2">Начална дата:</label>
+                        <input type="date" id="edit_start_date" name="start_date" required class="w-full px-3 py-2 border rounded">
                     </div>
                 </div>
-                <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                    Добави оферта
-                </button>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">
+                        Отказ
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Запази промените
+                    </button>
+                </div>
             </form>
         </div>
-
-    <!-- Existing offers -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
-        <div id="destinations-list">
-            <!-- Destinations will be loaded here via JavaScript -->
-        </div>
     </div>
-
-    <!-- Registered users -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Регистрирани потребители</h2>
-        <div id="users-list">
-            <!-- Users will be loaded here via JavaScript -->
-        </div>
-    </div>
-</div>
 
 <!-- Footer -->
 <footer class="bg-blue-600 text-white mt-12">
@@ -198,6 +340,7 @@
 <script>
     // Auto-hide success alert after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('editModal').classList.add('hidden');
         const successAlert = document.getElementById('successAlert');
         if (successAlert) {
             setTimeout(function() {
@@ -208,7 +351,29 @@
                 }, 500);
             }, 5000);
         }
+        
+        // Show the default tab (offers)
+        showTab('offers');
     });
+
+    // Tab switching functionality
+    function showTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('[id$="-tab"]').forEach(tab => {
+            tab.classList.remove('tab-active');
+        });
+        
+        // Show the selected tab content
+        document.getElementById(`${tabName}-content`).classList.remove('hidden');
+        
+        // Add active class to the selected tab
+        document.getElementById(`${tabName}-tab`).classList.add('tab-active');
+    }
 
     // Fetch and display destinations
     fetch('/admin/destinations')
@@ -225,30 +390,68 @@
                     <p>Транспорт: ${dest.transport}</p>
                     <p>Продължителност: ${dest.duration}</p>
                     <p>Начална дата: ${new Date(dest.start_date).toLocaleDateString('bg-BG')}</p>
-                    <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
-                        Изтрий
+                    <div class="mt-2 flex space-x-2">
+                        <button onclick="editDestination(${dest.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
+                            Редактирай
+                        </button>
+                        <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded">
+                            Изтрий
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(error => console.error('Грешка при зареждане на дестинациите:', error));
+
+    // Fetch and display bookings
+    fetch('/admin/bookings')
+        .then(response => response.json())
+        .then(bookings => {
+            const bookingsList = document.getElementById('bookings-list');
+            bookingsList.innerHTML = bookings.map(booking => {
+                // Преобразуваме статусите
+                let statusText = '';
+                if (booking.status === 'confirmed') {
+                    statusText = 'Потвърдена';
+                } else if (booking.status === 'cancelled') {
+                    statusText = 'Отказана';
+                } else {
+                    statusText = 'В изчакване'; // За 'pending'
+                }
+
+                return `
+                    <div id="booking-${booking.id}" class="border-b py-4">
+                        <h3 class="text-lg font-semibold">Резервация №${booking.id}</h3>
+                        <p>Клиент: ${booking.customer_name}</p>
+                        <p>Имейл: ${booking.customer_email}</p>
+                        <p>Дестинация: ${booking.destination}</p>
+                        <p>Дата на резервация: ${new Date(booking.booking_date).toLocaleDateString('bg-BG')}</p>
+                        <p>Статус: <span class="font-semibold">${statusText}</span></p>
+                        <button onclick="deleteBooking(${booking.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
+                            Изтрий резервация
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(error => console.error('Грешка при зареждане на резервациите:', error));
+
+    // Fetch and display users
+    fetch('/admin/users') 
+        .then(response => response.json())
+        .then(users => {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = users.map(user => `
+                <div id="user-${user.id}" class="border-b py-4">
+                    <h3 class="text-lg font-semibold">${user.first_name} ${user.last_name}</h3>
+                    <p>Email: ${user.email}</p>
+                    <p>Роля: ${user.role}</p>
+                    <button onclick="deleteUser(${user.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
+                        Изтрий акаунт
                     </button>
                 </div>
             `).join('');
         });
-
-    // Fetch and display users
-    // Fetch and display users
-fetch('/admin/users')
-    .then(response => response.json())
-    .then(users => {
-        const usersList = document.getElementById('users-list');
-        usersList.innerHTML = users.map(user => `
-            <div id="user-${user.id}" class="border-b py-4">
-                <h3 class="text-lg font-semibold">${user.first_name} ${user.last_name}</h3>
-                <p>Email: ${user.email}</p>
-                <p>Роля: ${user.role}</p>
-                <button onclick="deleteUser(${user.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
-                    Изтрий акаунт
-                </button>
-            </div>
-        `).join('');
-    });
 
     // Function to delete a destination
     function deleteDestination(id) {
@@ -282,33 +485,140 @@ fetch('/admin/users')
 
     // Function to delete a user
     function deleteUser(id) {
-    if (confirm('Сигурни ли сте, че искате да изтриете този потребителски акаунт?')) {
-        fetch(`/admin/delete-user/${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    // Show success message
-                    document.getElementById('dynamicSuccessMessage').textContent = result.message;
-                    document.getElementById('dynamicSuccessAlert').style.display = 'block';
-                    
-                    // Auto-hide after 3 seconds
-                    setTimeout(function() {
-                        document.getElementById('dynamicSuccessAlert').style.opacity = '0';
-                        document.getElementById('dynamicSuccessAlert').style.transition = 'opacity 0.5s ease-in-out';
+        if (confirm('Сигурни ли сте, че искате да изтриете този потребителски акаунт?')) {
+            fetch(`/admin/delete-user/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Show success message
+                        document.getElementById('dynamicSuccessMessage').textContent = result.message;
+                        document.getElementById('dynamicSuccessAlert').style.display = 'block';
+                        
+                        // Auto-hide after 3 seconds
                         setTimeout(function() {
-                            document.getElementById('dynamicSuccessAlert').style.display = 'none';
-                            document.getElementById('dynamicSuccessAlert').style.opacity = '1';
-                        }, 500);
-                    }, 3000);
-                    
-                    // Remove the user from the DOM
-                    document.getElementById(`user-${id}`).remove();
-                } else {
-                    alert('Грешка при изтриване на потребителския акаунт');
-                }
-            });
+                            document.getElementById('dynamicSuccessAlert').style.opacity = '0';
+                            document.getElementById('dynamicSuccessAlert').style.transition = 'opacity 0.5s ease-in-out';
+                            setTimeout(function() {
+                                document.getElementById('dynamicSuccessAlert').style.display = 'none';
+                                document.getElementById('dynamicSuccessAlert').style.opacity = '1';
+                            }, 500);
+                        }, 3000);
+                        
+                        // Remove the user from the DOM
+                        document.getElementById(`user-${id}`).remove();
+                    } else {
+                        alert('Грешка при изтриване на потребителския акаунт');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in delete user request:', error);
+                    alert(`Възникна грешка при изпращането на заявката: ${error.message}`);
+                });
         }
     }
+
+    // Function to edit a destination
+    function editDestination(destinationId) {
+        // Изпращаме заявка за вземане на информация за дестинацията
+        fetch(`/admin/destination/${destinationId}`)
+            .then(response => response.json())
+            .then(destination => {
+                // Попълваме формата с данни за дестинацията
+                document.getElementById('edit_destination_id').value = destination.id;
+                document.getElementById('edit_name').value = destination.name;
+                document.getElementById('edit_country').value = destination.country;
+                document.getElementById('edit_description').value = destination.description;
+                document.getElementById('edit_image_url').value = destination.image_url;
+                document.getElementById('edit_type').value = destination.type;
+                document.getElementById('edit_price').value = destination.price;
+                document.getElementById('edit_transport').value = destination.transport;
+                document.getElementById('edit_duration').value = destination.duration;
+                document.getElementById('edit_start_date').value = destination.start_date.split('T')[0]; // Форматираме датата
+                // Показваме формата
+                document.getElementById('edit-destination-form').style.display = 'block';
+            })
+            .catch(error => console.error('Грешка при зареждане на дестинацията:', error));
+    }
+
+    // Function to close the edit modal
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+    }
+
+    // Handle the edit form submission
+    document.getElementById('edit-destination-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const id = document.getElementById('edit_id').value;
+        const formData = new FormData(this);
+        
+        // Convert FormData to JSON
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        
+        // Send the update request
+        fetch(`/admin/update-destination/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Close the modal
+                closeEditModal();
+                
+                // Show success message
+                document.getElementById('dynamicSuccessMessage').textContent = 'Дестинацията е обновена успешно!';
+                document.getElementById('dynamicSuccessAlert').style.display = 'block';
+                
+                // Auto-hide after 3 seconds
+                setTimeout(function() {
+                    document.getElementById('dynamicSuccessAlert').style.opacity = '0';
+                    document.getElementById('dynamicSuccessAlert').style.transition = 'opacity 0.5s ease-in-out';
+                    setTimeout(function() {
+                        document.getElementById('dynamicSuccessAlert').style.display = 'none';
+                        document.getElementById('dynamicSuccessAlert').style.opacity = '1';
+                    }, 500);
+                }, 3000);
+                
+                // Refresh the destinations list
+                fetch('/admin/destinations')
+                    .then(response => response.json())
+                    .then(destinations => {
+                        const destinationsList = document.getElementById('destinations-list');
+                        destinationsList.innerHTML = destinations.map(dest => `
+                            <div id="destination-${dest.id}" class="border-b py-4">
+                                <h3 class="text-lg font-semibold">${dest.name}</h3>
+                                <p>${dest.description}</p>
+                                <p>Държава: ${dest.country}</p>
+                                <p>Тип: ${dest.type}</p>
+                                <p>Цена: ${dest.price} лв</p>
+                                <p>Транспорт: ${dest.transport}</p>
+                                <p>Продължителност: ${dest.duration}</p>
+                                <p>Начална дата: ${new Date(dest.start_date).toLocaleDateString('bg-BG')}</p>
+                                <div class="mt-2 flex space-x-2">
+                                    <button onclick="editDestination(${dest.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded">
+                                        Редактирай
+                                    </button>
+                                    <button onclick="deleteDestination(${dest.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded">
+                                        Изтрий
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(error => console.error('Грешка при зареждане на дестинациите:', error));
+            } else {
+                alert('Грешка при обновяването на дестинацията');
+            }
+        })
+        .catch(error => console.error('Грешка при изпращане на заявка за обновяване:', error));
+    });
 </script>
 </body>
 </html>
