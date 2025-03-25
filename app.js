@@ -206,6 +206,38 @@ app.get('/api/dropdown-data', (req, res) => {
   });
 });
 
+// Add this to your server-side code (app.js or routes file)
+app.get('/api/top-destination', async (req, res) => {
+  try {
+      // Query to find the destination with the most confirmed bookings
+      const query = `
+          SELECT d.*, COUNT(b.id) as booking_count
+          FROM destinations d
+          JOIN bookings b ON d.id = b.destination_id
+          WHERE b.status = 'confirmed'
+          GROUP BY d.id
+          ORDER BY booking_count DESC
+          LIMIT 1
+      `;
+      
+      connection.query(query, (error, results) => {
+          if (error) {
+              console.error('Error fetching top destination:', error);
+              return res.status(500).json({ success: false, message: 'Database error' });
+          }
+          
+          if (results.length > 0) {
+              return res.json({ success: true, destination: results[0] });
+          } else {
+              return res.json({ success: false, message: 'No destinations found' });
+          }
+      });
+  } catch (error) {
+      console.error('Error in top destination route:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 app.get('/register', (req, res) => {
   res.render('register', {error: null, success: null});
 });
@@ -930,6 +962,56 @@ app.get('/admin/destination/:id', isAdmin, (req, res) => {
   });
 });
 
+// Update destination
+app.put('/admin/update-destination/:id', isAdmin, (req, res) => {
+  const { id } = req.params;
+  const { name, country, description, image_url, type, price, transport, duration, start_date } = req.body;
+  
+  console.log('Updating destination:', id);
+  console.log('Request body:', req.body);
+  
+  // Validate the data
+  if (!name || !country || !description || !image_url || !type || !price || !transport || !duration || !start_date) {
+      console.log('Missing required fields');
+      return res.status(400).json({ 
+          success: false, 
+          message: 'Всички полета са задължителни' 
+      });
+  }
+  
+  // Update the destination in the database
+  connection.query(
+      `UPDATE destinations 
+       SET name = ?, country = ?, description = ?, image_url = ?, 
+           type = ?, price = ?, transport = ?, duration = ?, start_date = ? 
+       WHERE id = ?`,
+      [name, country, description, image_url, type, price, transport, duration, start_date, id],
+      (error, results) => {
+          if (error) {
+              console.error('Error updating destination:', error);
+              return res.status(500).json({ 
+                  success: false, 
+                  message: 'Грешка при обновяване на дестинацията',
+                  error: error.message
+              });
+          }
+          
+          if (results.affectedRows === 0) {
+              console.log('No rows affected');
+              return res.status(404).json({ 
+                  success: false, 
+                  message: 'Дестинацията не е намерена' 
+              });
+          }
+          
+          console.log('Destination updated successfully');
+          res.json({ 
+              success: true, 
+              message: 'Дестинацията е обновена успешно' 
+          });
+      }
+  );
+});
 
 app.get('/destination/:id', async(req, res)=> {
   const [destination] = await connection.promise().query(

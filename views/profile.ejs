@@ -23,28 +23,29 @@
 </head>
 <body class="bg-gray-100">
     <!-- Header -->
-    <div class="bg-blue-600 text-white py-2">
-        <div class="container mx-auto px-4 flex flex-column sm:flex-row justify-between items-center">
-            <div class="container mx-auto px-2 flex items-center justify-between">
-                <a href="/" class="text-2xl font-bold text-white py-1 px-0 rounded-full transition duration-300">
+    <header class="bg-blue-600 text-white py-2">
+        <div class="container mx-auto px-4">
+            <!-- Logo centered -->
+            <div class="flex justify-center mb-2">
+                <a href="/" class="text-2xl font-bold text-white">
                     TravelWise
                 </a>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="/" class="text-sm hover:text-blue-100">Начало</a>
-                <a href="/aboutus" class="text-sm hover:text-blue-100 whitespace-nowrap">За нас</a>
-                <a href="/contact" class="text-sm hover:text-blue-100">Контакти</a>
+            
+            <!-- User buttons centered and in a row -->
+            <div class="flex flex-wrap justify-center items-center gap-2">
                 <% if (locals.user) { %>
-                    <div class="flex items-center space-x-4">
-                        <% if (user.role === 'admin') { %>
-                            <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors">
-                                Админ Панел
-                            </a>
-                        <% } %>
-                        <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
-                            Изход
+                    <a href="/profile" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors whitespace-nowrap">
+                        <%= user.firstName %> <%= user.lastName %>
+                    </a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors whitespace-nowrap">
+                            Админ Панел
                         </a>
-                    </div>
+                    <% } %>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors whitespace-nowrap">
+                        Изход
+                    </a>
                 <% } else { %>
                     <a href="/signin" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
                         Вход
@@ -52,7 +53,39 @@
                 <% } %>
             </div>
         </div>
-    </div>
+        
+        <!-- Desktop layout (hidden on mobile) -->
+        <div class="hidden md:block">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-6">
+                        <a href="/" class="text-2xl font-bold text-white">TravelWise</a>
+                        <a href="/" class="text-sm hover:text-blue-100">Начало</a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <% if (locals.user) { %>
+                            <a href="/profile" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                                <%= user.firstName %> <%= user.lastName %>
+                            </a>
+                            <% if (user.role === 'admin') { %>
+                                <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors">
+                                    Админ Панел
+                                </a>
+                            <% } %>
+                            <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
+                                Изход
+                            </a>
+                        <% } else { %>
+                            <a href="/signin" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
+                                Вход
+                            </a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
@@ -212,13 +245,6 @@
                     </div>
                 <% } %>
             </div>
-            <% if (user.role === 'admin') { %>
-                <div class="mt-6">
-                    <a href="/admin-dashboard" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
-                        Админ Панел
-                    </a>
-                </div>
-            <% } %>
         <% } %>
     </div>
 
