@@ -1,123 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>За нас - TravelWise</title>
-    <link href="/css/styles.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>За нас - TravelWise</title>
+  <link href="/css/styles.css" rel="stylesheet">
+  <style>
+      .logo {
+          font-size: 2.5rem;
+          font-weight: bold;
+          color: #2563eb;
+          line-height: 1.2;
+          text-align: center;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 1rem;
+          text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+      }
+  </style>
 </head>
 <body class="bg-gray-100">
-    <header class="bg-blue-600 text-white py-2">
-        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
-            <div class="container mx-auto px-2 flex items-center justify-between">
-                <a href="/" class="text-2xl font-bold text-white py-1 px-0 rounded-full transition duration-300">
-                    TravelWise
-                </a>
+  <!-- Header -->
+  <header class="bg-blue-600 text-white py-2 shadow-md">
+      <div class="container mx-auto px-4">
+          <div class="flex flex-col sm:flex-row justify-between items-center">
+              <div class="mb-3 sm:mb-0">
+                  <a href="/" class="text-2xl font-bold text-white hover:text-blue-100 transition-colors flex items-center">
+                      TravelWise
+                  </a>
+              </div>
+              
+              <!-- Navigation and user info -->
+              <nav class="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
+                  <a href="/contact" class="text-sm hover:text-blue-100 transition-colors flex items-center">
+                      Контакти
+                  </a>
+                  
+                  <% if (locals.user) { %>
+                      <div class="flex flex-wrap items-center justify-center gap-2 mt-2 sm:mt-0">
+                          <a href="/profile" class="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors whitespace-nowrap shadow-sm flex items-center">
+                              <%= user.firstName %> <%= user.lastName %>
+                          </a>
+                          <% if (user.role === 'admin') { %>
+                              <a href="/admin-dashboard" class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors whitespace-nowrap shadow-sm flex items-center">
+                                  Админ Панел
+                              </a>
+                          <% } %>
+                          <a href="/logout" class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition-colors shadow-sm flex items-center">
+                              Изход
+                          </a>
+                      </div>
+                  <% } else { %>
+                      <a href="/signin" class="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors shadow-sm flex items-center">
+                          Вход
+                      </a>
+                  <% } %>
+              </nav>
+          </div>
+      </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+      <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div class="p-4 sm:p-8">
+              <div class="flex justify-center mb-8">
+                  <div class="logo flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Travel<br>Wise</span>
+                  </div>
+              </div>
+              
+              <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-blue-600">За Travel Wise</h1>
+              
+              <div class="space-y-6 text-gray-700">
+                  <p>
+                      Добре дошли в Travel Wise – вашият доверен партньор в създаването на незабравими пътешествия. Нашата мисия е да помагаме на авантюристите да откриват света с увереност и лекота.
+                  </p>
+                  
+                  <p>
+                      В Travel Wise вярваме, че пътуването е нещо повече от посещение на нови места – то е създаване на трайни спомени, разширяване на кръгозора и свързване с различни култури. Нашият екип от опитни любители на пътешествията е посветен на това да подбира най-добрите туристически пакети и да предоставя експертни съвети, за да бъде вашето пътуване нещо наистина изключително.
+                  </p>
+                  
+                  <p>
+                      Какво ни отличава:
+                  </p>
+                  
+                  <ul class="space-y-2 ml-4">
+                      <li class="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Персонализирано планиране според вашите предпочитания</span>
+                      </li>
+                      <li class="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Обширна мрежа от доверени партньори по целия свят</span>
+                      </li>
+                      <li class="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>24/7 клиентска поддръжка за спокойствие по време на пътуването</span>
+                      </li>
+                      <li class="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Ангажимент към устойчив и отговорен туризъм</span>
+                      </li>
+                      <li class="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Конкурентни цени без компромис с качеството</span>
+                      </li>
+                  </ul>
+                  
+                  <p>
+                      Независимо дали мечтаете за релаксираща почивка на плажа, вълнуваща планинска експедиция или културна обиколка на градове, TravelWise е тук, за да превърне вашите пътешествия в реалност. Нека бъдем вашият гид към най-завладяващите дестинации по света.
+                  </p>
+                  
+                  <p class="font-semibold">
+                      Отправете се на следващото си приключение с TravelWise – там, където всяко пътуване се превръща в история, която си заслужава да бъде разказана.
+                  </p>
+              </div>
+
+              <% if (!locals.user) { %>
+                  <div class="mt-8 text-center">
+                      <p class="mb-4 text-lg font-semibold text-gray-700">Готови ли сте да започнете вашето пътешествие?</p>
+                      <a href="/register" class="bg-blue-600 text-white px-6 py-2 rounded-full text-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                          </svg>
+                          Създайте акаунт
+                      </a>
+                  </div>
+              <% } %>
+          </div>
+      </div>
+  </main>
+
+  <!-- Footer -->
+<footer class="bg-blue-600 text-white mt-8">
+    <div class="container mx-auto px-4 py-4 sm:py-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 text-sm sm:text-base">
+            <div>
+                <h3 class="text-base sm:text-lg font-bold mb-2 sm:mb-4">Контакти</h3>
+                <p class="text-blue-100">Тел: +359 876 117 098</p>
+                <p class="text-blue-100">Email: infowisetravel@gmail.com</p>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="/" class="text-sm hover:text-blue-100">Начало</a>
-                <a href="/contact" class="text-sm hover:text-blue-100">Контакти</a>
-                <% if (locals.user) { %>
-                    <div class="flex items-center space-x-4">
-                        <a href="/profile" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors whitespace-nowrap">
-                            <%= user.firstName %> <%= user.lastName %>
-                        </a>
-                        <% if (user.role === 'admin') { %>
-                            <a href="/admin-dashboard" class="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors whitespace-nowrap">
-                                Админ Панел
-                            </a>
-                        <% } %>
-                        <a href="/logout" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 transition-colors">
-                            Изход
-                        </a>
-                    </div>
-                <% } else { %>
-                    <a href="/signin" class="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors">
-                        Вход
-                    </a>
-                <% } %>
+            <div>
+                <h3 class="text-base sm:text-lg font-bold mb-2 sm:mb-4">Полезни връзки</h3>
+                <ul class="space-y-1 sm:space-y-2">
+                    <li><a href="/about" class="text-blue-100 hover:text-white">За нас</a></li>
+                    <li><a href="/contact" class="text-blue-100 hover:text-white">Контакти</a></li>
+                </ul>
+            </div>
+            <div class="col-span-2 sm:col-span-1 mt-4 sm:mt-0">
+                <h3 class="text-base sm:text-lg font-bold mb-2 sm:mb-4">Следвайте ни</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-blue-100 hover:text-white">Facebook</a>
+                    <a href="#" class="text-blue-100 hover:text-white">Instagram</a>
+                </div>
             </div>
         </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-8">
-        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-            <div class="p-8">
-                <div class="flex justify-center mb-8">
-                    <div class="logo">
-                        Travel<br>Wise
-                    </div>
-                </div>
-                
-                <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">За Travel Wise</h1>
-                
-                <div class="space-y-6 text-gray-700">
-                    <p>
-                        Добре дошли в Travel Wise – вашият доверен партньор в създаването на незабравими пътешествия. Нашата мисия е да помагаме на авантюристите да откриват света с увереност и лекота.
-                    </p>
-                    
-                    <p>
-                        В Travel Wise вярваме, че пътуването е нещо повече от посещение на нови места – то е създаване на трайни спомени, разширяване на кръгозора и свързване с различни култури. Нашият екип от опитни любители на пътешествията е посветен на това да подбира най-добрите туристически пакети и да предоставя експертни съвети, за да бъде вашето пътуване нещо наистина изключително.
-                    </p>
-                    
-                    <p>
-                        Какво ни отличава:
-                    </p>
-                    
-                    <ul class="list-disc list-inside space-y-2 ml-4">
-                        <li>✔ Персонализирано планиране според вашите предпочитания</li>
-                        <li>✔ Обширна мрежа от доверени партньори по целия свят</li>
-                        <li>✔ 24/7 клиентска поддръжка за спокойствие по време на пътуването</li>
-                        <li>✔ Ангажимент към устойчив и отговорен туризъм</li>
-                        <li>✔ Конкурентни цени без компромис с качеството</li>
-                    </ul>
-                    
-                    <p>
-                        Независимо дали мечтаете за релаксираща почивка на плажа, вълнуваща планинска експедиция или културна обиколка на градове, TravelWise е тук, за да превърне вашите пътешествия в реалност. Нека бъдем вашият гид към най-завладяващите дестинации по света.
-                    </p>
-                    
-                    <p class="font-semibold">
-                        Отправете се на следващото си приключение с TravelWise – там, където всяко пътуване се превръща в история, която си заслужава да бъде разказана.
-                    </p>
-                </div>
-
-                <% if (!locals.user) { %>
-                    <div class="mt-8 text-center">
-                        <p class="mb-4 text-lg font-semibold text-gray-700">Готови ли сте да започнете вашето пътешествие?</p>
-                        <a href="/register" class="bg-blue-600 text-white px-6 py-2 rounded-full text-lg font-medium hover:bg-blue-700 transition-colors inline-block">
-                            Създайте акаунт
-                        </a>
-                    </div>
-                <% } %>
-            </div>
+        <div class="border-t border-blue-500 mt-4 sm:mt-6 pt-4 text-center text-sm">
+            <p>&copy; 2025 TravelWise. Всички права запазени.</p>
         </div>
-    </main>
-
-    <footer class="bg-blue-600 text-white py-6 mt-12">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-wrap justify-between">
-                <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <h3 class="text-lg font-semibold mb-2">TravelWise</h3>
-                    <p class="text-sm">Вашият надежден партньор за незабравими пътешествия.</p>
-                </div>
-                <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <h3 class="text-lg font-semibold mb-2">Контакти</h3>
-                    <p class="text-sm">Телефон: +359 876 117 098</p>
-                    <p class="text-sm">Имейл: infowisetravel@gmail.com</p>
-                </div>
-                <div class="w-full md:w-1/3">
-                    <h3 class="text-lg font-semibold mb-2">Следвайте ни</h3>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-white hover:text-blue-400">Facebook</a>
-                        <a href="#" class="text-white hover:text-blue-400">Instagram</a>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-8 text-center text-sm">
-                <p>&copy; 2025 TravelWise. Всички права запазени.</p>
-            </div>
-        </div>
-    </footer>
-
+    </div>
+</footer>
 </body>
 </html>
+
