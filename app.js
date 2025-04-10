@@ -710,7 +710,13 @@ app.get('/admin/bookings', isAdmin, (req, res) => {
   });
 });
 
-
+app.get('/admin/delete-booking/:id', isAdmin, (req, res) => {
+  const query = 'DELETE FROM bookings WHERE id = ?';
+  connection.query(query, [req.params.id], (err) => {
+    if (err) throw err;
+    res.redirect('/admin/bookings');
+  });
+});
 
 app.get('/aboutus', (req, res) => {
   res.render('aboutus');
