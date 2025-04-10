@@ -547,7 +547,6 @@ function editDestination(id) {
             document.getElementById('edit_transport').value = destination.transport;
             document.getElementById('edit_duration').value = destination.duration;
             
-            // Format the date for the input field (YYYY-MM-DD)
             try {
                 const date = new Date(destination.start_date);
                 const formattedDate = date.toISOString().split('T')[0];

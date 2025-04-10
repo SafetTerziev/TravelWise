@@ -203,7 +203,6 @@ app.get('/api/dropdown-data', (req, res) => {
   });
 });
 
-// Add this to your server-side code (app.js or routes file)
 app.get('/api/top-destination', async (req, res) => {
   try {
       // Query to find the destination with the most confirmed bookings
@@ -341,7 +340,6 @@ app.post('/signin', async (req, res) => {
       });
     }
 
-    // Convert callback to Promise for cleaner code
     const query = 'SELECT * FROM users WHERE email = ?';
     const [results] = await new Promise((resolve, reject) => {
       connection.query(query, [email], (err, results) => {
@@ -359,7 +357,6 @@ app.post('/signin', async (req, res) => {
 
     const user = results[0];
     
-    // Convert bcrypt.compare to Promise
     const isMatch = await new Promise((resolve, reject) => {
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err) reject(err);
@@ -377,8 +374,8 @@ app.post('/signin', async (req, res) => {
     // Set user session
     req.session.user = {
       id: user.id,
-      firstName: user.first_name, // Using the correct column name from your database
-      lastName: user.last_name,   // Using the correct column name from your database
+      firstName: user.first_name, 
+      lastName: user.last_name,   
       email: user.email,
       role: user.role
     };
@@ -833,7 +830,6 @@ res.render('types/oneDay', {
 });
 
 app.get('/admin-dashboard', isAdmin, (req, res) => {
-  // Get success message from query parameters
   const successType = req.query.success;
   let successMessage = null;
   
@@ -886,7 +882,6 @@ app.get('/admin/users', isAdmin, (req, res) => {
 });
 
 // Delete user
-// Delete user with cascade
 app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
   const { id } = req.params;
   
