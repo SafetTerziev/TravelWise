@@ -142,7 +142,6 @@
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-6 text-gray-700">Моите резервации</h2>
                 <% 
-                // Filter out cancelled bookings
                 const activeBookings = bookings && bookings.filter(booking => booking.status !== 'cancelled');
                 
                 if (activeBookings && activeBookings.length > 0) { 

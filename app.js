@@ -1080,7 +1080,6 @@ app.post('/payment/create-checkout-session', async (req, res) => {
 // Add success and cancel routes
 app.get('/payment-success', async (req, res) => {
   const sessionId = req.query.session_id;
-  // Get destination_id and user_id from query parameters as fallback
   const destination_id = req.query.destination_id;
   const user_id = req.query.user_id || (req.session.user ? req.session.user.id : null);
   
@@ -1091,7 +1090,6 @@ app.get('/payment-success', async (req, res) => {
   });
   
   try {
-      // Use await with the Stripe API call since it's asynchronous
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       console.log('Retrieved session:', {
           id: session.id,
@@ -1099,8 +1097,6 @@ app.get('/payment-success', async (req, res) => {
       });
       
       // Get the destination_id and user_id from the metadata or query parameters
-      // Note: In your create-checkout-session, you're using destinationId and userId (camelCase)
-      // but your database columns are destination_id and user_id (snake_case)
       const final_destination_id = (session.metadata && session.metadata.destinationId) || destination_id;
       const final_user_id = (session.metadata && session.metadata.userId) || user_id;
       
@@ -1111,7 +1107,6 @@ app.get('/payment-success', async (req, res) => {
       
       // If we have both user_id and destination_id, create a booking
       if (final_user_id && final_destination_id) {
-          // Use pool.query instead of connection.query for consistency
           connection.query(
               'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
               [final_user_id, final_destination_id, 'confirmed'],
@@ -1138,7 +1133,6 @@ app.get('/payment-success', async (req, res) => {
               }
           );
       } else {
-          // If we don't have user_id or destination_id, just render the success page
           console.warn('Missing user_id or destination_id for booking');
           res.render('payment-success', {
               sessionId: sessionId,
@@ -1150,7 +1144,6 @@ app.get('/payment-success', async (req, res) => {
   } catch (error) {
       console.error('Error retrieving session or creating booking:', error);
       
-      // If we have destination_id and user_id from query parameters, try to create booking anyway
       if (destination_id && user_id) {
           console.log('Attempting to create booking from query parameters');
           
