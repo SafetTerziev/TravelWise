@@ -406,6 +406,32 @@
         })
         .catch(error => console.error('Грешка при зареждане на дестинациите:', error));
 
+        function deleteBooking(id) {
+  const confirmed = confirm('Сигурни ли сте, че искате да изтриете тази резервация?');
+
+  if (confirmed) {
+    fetch(`/admin/delete-booking/${id}`, {
+      method: 'GET'
+    })
+    .then(response => {
+      if (response.ok) {
+        // Премахни резервацията от DOM
+        const bookingElement = document.getElementById(`booking-${id}`);
+        if (bookingElement) {
+          bookingElement.remove();
+        }
+        alert('Резервацията беше успешно изтрита.');
+      } else {
+        alert('Грешка при изтриване на резервацията.');
+      }
+    })
+    .catch(error => {
+      console.error('Грешка при изтриване:', error);
+      alert('Възникна неочаквана грешка.');
+    });
+  }
+}
+
     // Fetch and display bookings
     fetch('/admin/bookings')
         .then(response => response.json())
@@ -433,6 +459,7 @@
                         <button onclick="deleteBooking(${booking.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded mt-2">
                             Изтрий резервация
                         </button>
+
                     </div>
                 `;
             }).join('');
