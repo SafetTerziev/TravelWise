@@ -110,11 +110,20 @@
                 <label for="country" class="block text-sm font-medium text-gray-700">Държава</label>
                 <select id="country" name="country" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
                     <option value="">Изберете държава</option>
-                    <!-- Server-side rendering of options -->
+                    <!-- Server-side rendering of options with duplicate filtering -->
                     <% if (typeof countries !== 'undefined' && countries && countries.length > 0) { %>
-                        <% countries.forEach(function(countryObj) { %>
-                            <option value="<%= countryObj.country %>"><%= countryObj.country %></option>
-                        <% }); %>
+                        <% 
+                        // Create a Set to track unique countries
+                        const uniqueCountries = new Set();
+                        
+                        // Only render each country once
+                        countries.forEach(function(countryObj) { 
+                            if (!uniqueCountries.has(countryObj.country)) {
+                                uniqueCountries.add(countryObj.country);
+                        %>
+                                <option value="<%= countryObj.country %>"><%= countryObj.country %></option>
+                        <%  }
+                        }); %>
                     <% } %>
                 </select>
             </div>
