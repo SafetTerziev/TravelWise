@@ -1,4 +1,3 @@
-<!-- views/adminDashboard.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,7 +107,6 @@
             </div>
         <% } %>
     
-        <!-- Dynamic Success Message (for AJAX operations) -->
         <div id="dynamicSuccessAlert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 relative alert-animate" role="alert" style="display: none;">
             <div class="flex items-center">
                 <div class="mr-3">
@@ -211,7 +209,7 @@
             <div class="bg-white shadow rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold mb-4">Съществуващи оферти</h2>
                 <div id="destinations-list">
-                    <!-- Destinations will be loaded here via JavaScript -->
+                    
                 </div>
             </div>
         </div>
@@ -222,7 +220,7 @@
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-4">Регистрирани потребители</h2>
                 <div id="users-list">
-                    <!-- Users will be loaded here via JavaScript -->
+                    
                 </div>
             </div>
         </div>
@@ -233,13 +231,13 @@
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-4">Резервации</h2>
                 <div id="bookings-list">
-                    <!-- Bookings will be loaded here via JavaScript -->
+                    
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Destination Modal -->
+<!-- Edit Destination Modal -->
 <div id="editModal" class="modal-backdrop hidden" style="display: none;">
     <div class="modal-content p-6">
         <div class="flex justify-between items-center mb-4">
@@ -341,7 +339,6 @@
 </footer>
 
 <script>
-    // Auto-hide success alert after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('editModal').classList.add('hidden');
         const successAlert = document.getElementById('successAlert');
@@ -355,7 +352,6 @@
             }, 5000);
         }
         
-        // Show the default tab (offers)
         showTab('offers');
     });
 
@@ -406,7 +402,7 @@
         })
         .catch(error => console.error('Грешка при зареждане на дестинациите:', error));
 
-    function deleteBooking(id) {
+function deleteBooking(id) {
   const confirmed = confirm('Сигурни ли сте, че искате да изтриете тази резервация?');
 
   if (confirmed) {
@@ -415,7 +411,6 @@
     })
     .then(response => {
       if (response.ok) {
-        // Премахни резервацията от DOM
         const bookingElement = document.getElementById(`booking-${id}`);
         if (bookingElement) {
           bookingElement.remove();
@@ -490,11 +485,9 @@
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        // Show success message
                         document.getElementById('dynamicSuccessMessage').textContent = 'Дестинацията е премахната успешно!';
                         document.getElementById('dynamicSuccessAlert').style.display = 'block';
                         
-                        // Auto-hide after 3 seconds
                         setTimeout(function() {
                             document.getElementById('dynamicSuccessAlert').style.opacity = '0';
                             document.getElementById('dynamicSuccessAlert').style.transition = 'opacity 0.5s ease-in-out';
@@ -504,7 +497,6 @@
                             }, 500);
                         }, 3000);
                         
-                        // Remove the destination from the DOM
                         document.getElementById(`destination-${id}`).remove();
                     } else {
                         alert('Грешка при изтриване на офертата');
@@ -520,11 +512,9 @@
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        // Show success message
                         document.getElementById('dynamicSuccessMessage').textContent = result.message;
                         document.getElementById('dynamicSuccessAlert').style.display = 'block';
                         
-                        // Auto-hide after 3 seconds
                         setTimeout(function() {
                             document.getElementById('dynamicSuccessAlert').style.opacity = '0';
                             document.getElementById('dynamicSuccessAlert').style.transition = 'opacity 0.5s ease-in-out';
@@ -534,7 +524,6 @@
                             }, 500);
                         }, 3000);
                         
-                        // Remove the user from the DOM
                         document.getElementById(`user-${id}`).remove();
                     } else {
                         alert('Грешка при изтриване на потребителския акаунт');
@@ -547,78 +536,6 @@
         }
     }
 
-    // Function to edit a destination
-    // Function to edit a destination
-function editDestination(id) {
-    console.log('Edit button clicked for destination ID:', id);
-    
-    // Fetch the destination data
-    fetch(`/admin/destination/${id}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server returned ' + response.status);
-            }
-            return response.json();
-        })
-        .then(destination => {
-            console.log('Destination data received:', destination);
-            
-            // Populate the form with the destination data
-            document.getElementById('edit_id').value = destination.id;
-            document.getElementById('edit_name').value = destination.name;
-            document.getElementById('edit_country').value = destination.country;
-            document.getElementById('edit_description').value = destination.description;
-            document.getElementById('edit_image_url').value = destination.image_url;
-            document.getElementById('edit_type').value = destination.type;
-            document.getElementById('edit_price').value = destination.price;
-            document.getElementById('edit_transport').value = destination.transport;
-            document.getElementById('edit_duration').value = destination.duration;
-            
-            try {
-                const date = new Date(destination.start_date);
-                const formattedDate = date.toISOString().split('T')[0];
-                document.getElementById('edit_start_date').value = formattedDate;
-            } catch (e) {
-                console.error('Error formatting date:', e);
-                // Try to use the raw date string if it's in a compatible format
-                if (destination.start_date && destination.start_date.includes('T')) {
-                    document.getElementById('edit_start_date').value = destination.start_date.split('T')[0];
-                }
-            }
-            
-            // Show the modal
-            const modal = document.getElementById('editModal');
-            modal.classList.remove('hidden');
-            console.log('Modal should be visible now');
-        })
-        .catch(error => {
-            console.error('Error fetching destination:', error);
-            alert('Грешка при зареждане на данните за дестинацията: ' + error.message);
-        });
-}
-
-// Handle the edit form submission
-document.addEventListener('DOMContentLoaded', function() {
-    // Make sure the edit modal is hidden initially
-    const editModal = document.getElementById('editModal');
-    editModal.classList.add('hidden');
-    editModal.style.display = 'none';
-    
-    // Rest of your DOMContentLoaded code...
-    const successAlert = document.getElementById('successAlert');
-    if (successAlert) {
-        setTimeout(function() {
-            successAlert.style.opacity = '0';
-            successAlert.style.transition = 'opacity 0.5s ease-in-out';
-            setTimeout(function() {
-                successAlert.style.display = 'none';
-            }, 500);
-        }, 5000);
-    }
-    
-    // Show the default tab (offers)
-    showTab('offers');
-});
 
 // EditDestination function
 function editDestination(id) {
@@ -635,7 +552,6 @@ function editDestination(id) {
         .then(destination => {
             console.log('Destination data received:', destination);
             
-            // Populate the form with the destination data
             document.getElementById('edit_id').value = destination.id;
             document.getElementById('edit_name').value = destination.name;
             document.getElementById('edit_country').value = destination.country;

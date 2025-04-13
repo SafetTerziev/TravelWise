@@ -217,14 +217,12 @@
           function setupAlert(alertId, redirectUrl) {
               const alert = document.getElementById(alertId);
               if (alert) {
-                  // Auto-hide after 3 seconds
                   setTimeout(function() {
                       alert.style.opacity = '0';
                       alert.style.transition = 'opacity 0.5s ease-in-out';
                       setTimeout(function() {
                           alert.style.display = 'none';
                           
-                          // If this is a success alert and we have a redirect URL, redirect after hiding
                           if (alertId === 'successAlert' && redirectUrl) {
                               window.location.href = redirectUrl;
                           }
@@ -233,10 +231,8 @@
               }
           }
           
-          // Setup error alert
           setupAlert('errorAlert');
           
-          // Setup success alert with redirect
           setupAlert('successAlert', '/signin');
       });
   </script>

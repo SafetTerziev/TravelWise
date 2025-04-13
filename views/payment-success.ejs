@@ -51,7 +51,6 @@
             <h1 class="text-3xl font-bold text-gray-800 mb-4">Плащането е успешно!</h1>
             <p class="text-gray-600 mb-6">Благодарим Ви за резервацията. Ще получите имейл с потвърждение и детайли за пътуването.</p>
             <p class="text-sm text-gray-500 mb-6">Номер на транзакция: <%= sessionId %></p>
-            <!-- Add this to your payment-success.ejs file -->
             <% if (locals.bookingCreated) { %>
                 <p class="text-green-600 mb-6">Вашата резервация е създадена успешно! Можете да я видите в <a href="/profile" class="text-blue-600 hover:underline">профила си</a>.</p>
             <% } else if (locals.error) { %>

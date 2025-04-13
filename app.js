@@ -6,13 +6,9 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
-const SESSION_SECRET = 'SereneSymphonyTundraEclipseMath2025';
-const EMAIL_USER = 'safetterziev8@gmail.com';
-const EMAIL_PASS = '30102006';
-const ADMIN_EMAIL = 'safetterziev8@gmail.com';
-const stripe  = require('stripe')('sk_test_51QwRMbFtpkraOtDeF2bVkO5DXd4v6Qui6jxN3KqVH1qTcapCS4ArrwVLE7V4KTJrFSZ7ykfD2dHx2yv2fp91PjmO00vZDojKip');
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = 4000;
 app.use(express.json());
 require('dotenv').config();
@@ -77,7 +73,6 @@ app.get('/', (req, res) => {
 app.get('/search', (req, res) => {
   const { country, transport, start_date, type } = req.query;
   
-  // Build the query dynamically based on provided parameters
   let query = 'SELECT * FROM destinations WHERE 1=1';
   const params = [];
   
@@ -117,11 +112,9 @@ app.get('/search', (req, res) => {
   });
 });
 
-// Home route with dynamic dropdown data
+// Home route 
 app.get('/', (req, res) => {
-  // Use Promise.all to run both queries in parallel
   Promise.all([
-      // Query for countries
       new Promise((resolve, reject) => {
           pool.query('SELECT DISTINCT country FROM destinations WHERE country IS NOT NULL AND country != "" ORDER BY country', (error, results) => {
               if (error) {
@@ -133,7 +126,6 @@ app.get('/', (req, res) => {
               }
           });
       }),
-      // Query for transports
       new Promise((resolve, reject) => {
           pool.query('SELECT DISTINCT transport FROM destinations WHERE transport IS NOT NULL AND transport != "" ORDER BY transport', (error, results) => {
               if (error) {
@@ -147,11 +139,9 @@ app.get('/', (req, res) => {
       })
   ])
   .then(([countries, transports]) => {
-      // Log the data for debugging
       console.log('Countries:', JSON.stringify(countries));
       console.log('Transports:', JSON.stringify(transports));
       
-      // Render the page with the data
       res.render('index', {
           user: req.session.user,
           countries: countries,
@@ -205,7 +195,6 @@ app.get('/api/dropdown-data', (req, res) => {
 
 app.get('/api/top-destination', async (req, res) => {
   try {
-      // Query to find the destination with the most confirmed bookings
       const query = `
           SELECT d.*, COUNT(b.id) as booking_count
           FROM destinations d
@@ -298,8 +287,6 @@ app.post('/register', async (req, res) => {
           
           console.log('User registered:', result);
           
-          // Show success message on the registration page
-          // The JavaScript will handle the redirect after a delay
           return res.render('register', {
             error: null,
             success: 'Регистрацията е успешна! Ще бъдете пренасочени към страницата за вход.'
@@ -406,11 +393,9 @@ app.get('/profile', isAuthenticated, (req, res) => {
   const userId = req.session.user.id;
   console.log(`Fetching profile for user ID: ${userId}`);
 
-  // Get any messages or errors from query parameters
   const message = req.query.message;
   const error = req.query.error;
 
-  // Improved query to fetch bookings with destination details
   const bookingsQuery = `
     SELECT 
       b.id, 
@@ -440,7 +425,6 @@ app.get('/profile', isAuthenticated, (req, res) => {
 
     console.log(`Found ${bookings.length} bookings for user ID: ${userId}`);
 
-    // Format the booking data for display
     const formattedBookings = bookings.map(booking => {
       return {
         ...booking,
@@ -486,7 +470,7 @@ app.get('/profile', isAuthenticated, (req, res) => {
   });
 });
 
-// Add a route to handle booking cancellations
+// Route to handle booking cancellations
 app.post('/cancel-booking', isAuthenticated, (req, res) => {
   const bookingId = req.body.bookingId;
   const userId = req.session.user.id;
@@ -509,13 +493,12 @@ app.post('/cancel-booking', isAuthenticated, (req, res) => {
       }
       
       console.log(`Successfully cancelled booking ID: ${bookingId}`);
-      // Redirect back to profile with success message
       res.redirect('/profile?message=booking-cancelled');
     }
   );
 });
 
-// Add this route to handle password change
+// Route to handle password change
 app.post('/change-password', (req, res) => {
   // Check if user is logged in
   if (!req.session.user) {
@@ -662,7 +645,6 @@ app.post('/admin/add-destination', isAdmin, (req, res) => {
               console.error('Error adding destination:', error);
               return res.status(500).json({ error: 'Internal server error' });
           }
-          // Redirect with success message as query parameter
           res.redirect('/admin-dashboard?success=add');
       }
   );
@@ -765,10 +747,9 @@ app.post('/submit-inquiry', async (req, res) => {
         <p><strong>Съобщение:</strong></p>
         <p>${message}</p>
       `,
-      email // Pass the user's email as replyTo
+      email 
     );
     
-    // Redirect with success message
     res.redirect('/contact?success=true');
 
   } catch (error) {
@@ -777,18 +758,17 @@ app.post('/submit-inquiry', async (req, res) => {
   }
 });
 
-// Updated sendEmail function with replyTo parameter
+// SendEmail function with replyTo parameter
 async function sendEmail(to, subject, text, html, replyTo = null) {
   try {
     const msg = {
       to: to,
-      from: 'infowisetravel@gmail.com', // Your verified sender
+      from: process.env.ADMIN_EMAIL, 
       subject: subject,
       text: text,
       html: html,
     };
     
-    // Add replyTo if provided
     if (replyTo) {
       msg.replyTo = replyTo;
     }
@@ -860,7 +840,7 @@ app.get('/admin-dashboard', isAdmin, (req, res) => {
           res.render('adminDashboard', { 
               destinations, 
               users,
-              successMessage // Pass success message to template
+              successMessage 
           });
       });
   });
@@ -891,7 +871,6 @@ app.get('/admin/users', isAdmin, (req, res) => {
 app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
   const { id } = req.params;
   
-  // Start a transaction to ensure data integrity
   connection.beginTransaction(err => {
     if (err) {
       console.error('Error starting transaction:', err);
@@ -913,10 +892,7 @@ app.delete('/admin/delete-user/:id', isAdmin, (req, res) => {
         });
       }
       
-      // Delete related records if needed (example: delete user's bookings)
-      // connection.query('DELETE FROM bookings WHERE user_id = ?', [id], (error) => { ... });
-      
-      // Finally, delete the user
+      // Delete the user
       connection.query('DELETE FROM users WHERE id = ?', [id], (error, result) => {
         if (error) {
           return connection.rollback(() => {
@@ -956,7 +932,7 @@ app.get('/admin/destination/:id', isAdmin, (req, res) => {
           return res.status(404).json({ error: 'Destination not found' });
       }
 
-      res.json(results[0]); // Връща само първата дестинация
+      res.json(results[0]); 
   });
 });
 
@@ -1038,7 +1014,6 @@ app.post('/payment/create-checkout-session', async (req, res) => {
       // Log the received data
       console.log('Creating checkout session for:', destinationName, 'Price:', price);
       
-      // Convert price to cents (Stripe requires amounts in cents)
       const priceInCents = Math.round(parseFloat(price) * 100);
       
       // Create a checkout session
@@ -1066,10 +1041,8 @@ app.post('/payment/create-checkout-session', async (req, res) => {
         }
       });
       
-      // Log the created session ID
       console.log('Created session:', session.id);
       
-      // Return the session ID to the client
       res.json({ id: session.id });
   } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -1077,7 +1050,7 @@ app.post('/payment/create-checkout-session', async (req, res) => {
   }
 });
 
-// Add success and cancel routes
+// Success and cancel routes
 app.get('/payment-success', async (req, res) => {
   const sessionId = req.query.session_id;
   const destination_id = req.query.destination_id;
@@ -1096,7 +1069,6 @@ app.get('/payment-success', async (req, res) => {
           metadata: session.metadata
       });
       
-      // Get the destination_id and user_id from the metadata or query parameters
       const final_destination_id = (session.metadata && session.metadata.destinationId) || destination_id;
       const final_user_id = (session.metadata && session.metadata.userId) || user_id;
       
@@ -1105,7 +1077,6 @@ app.get('/payment-success', async (req, res) => {
           user_id: final_user_id
       });
       
-      // If we have both user_id and destination_id, create a booking
       if (final_user_id && final_destination_id) {
           connection.query(
               'INSERT INTO bookings (user_id, destination_id, status) VALUES (?, ?, ?)',
@@ -1123,7 +1094,6 @@ app.get('/payment-success', async (req, res) => {
                   
                   console.log('Booking created successfully:', results.insertId);
                   
-                  // Render the success page
                   res.render('payment-success', {
                       sessionId: sessionId,
                       user: req.session.user,
@@ -1185,14 +1155,12 @@ app.get('/payment-success', async (req, res) => {
 });
 
 app.get('/payment-cancel', (req, res) => {
-  // Render a cancel page
   res.render('payment-cancel', {
       user: req.session.user
   });
 });
 
 app.post('/cancel-booking', (req, res) => {
-  // Check if user is logged in
   if (!req.session.user) {
       return res.redirect('/signin');
   }
@@ -1200,7 +1168,6 @@ app.post('/cancel-booking', (req, res) => {
   const bookingId = req.body.bookingId;
   const userId = req.session.user.id;
   
-  // Update the booking status to 'cancelled'
   connection.query(
       'UPDATE bookings SET status = ? WHERE id = ? AND user_id = ?',
       ['cancelled', bookingId, userId],
@@ -1211,11 +1178,9 @@ app.post('/cancel-booking', (req, res) => {
           }
           
           if (results.affectedRows === 0) {
-              // No booking was updated, might be because it doesn't exist or doesn't belong to this user
               return res.redirect('/profile?error=booking-not-found');
           }
           
-          // Redirect back to profile with success message
           res.redirect('/profile?message=booking-cancelled');
       }
   );

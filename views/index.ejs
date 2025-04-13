@@ -133,7 +133,6 @@
                 </select>
             </div>
             
-            <!-- Other form fields remain the same -->
             <div class="space-y-2">
                 <label for="start_date" class="block text-sm font-medium text-gray-700">От дата</label>
                 <input type="date" id="start_date" name="start_date" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
@@ -240,21 +239,17 @@
         </div>
     </div>
 </footer>
-    <!-- Scripts -->
     <script>
         function scrollToSearch() {
             const searchSection = document.getElementById('search-section');
             searchSection.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
-    <!-- Client-side fallback script -->
 <script>
-    // Function to check if dropdowns are empty and populate them if needed
     async function checkAndPopulateDropdowns() {
         const countryDropdown = document.getElementById('country');
         const transportDropdown = document.getElementById('transport');
         
-        // Check if country dropdown has options (besides the default)
         if (countryDropdown.options.length <= 1) {
             console.log('Country dropdown is empty, fetching data...');
             try {
@@ -290,10 +285,8 @@
         }
     }
     
-// Call the function when the page loads
 document.addEventListener('DOMContentLoaded', checkAndPopulateDropdowns);
 
-// Add this to your existing script section
 async function fetchTopDestination() {
     const topDestinationContainer = document.getElementById('top-destination-container');
     const loadingElement = document.getElementById('top-destination-loading');
@@ -307,7 +300,6 @@ async function fetchTopDestination() {
         if (data.success && data.destination) {
             const destination = data.destination;
             
-            // Create HTML for the top destination
             const html = `
                 <div class="bg-white rounded-lg overflow-hidden border border-dashed border-yellow-400 relative">
                     <div class="absolute top-4 left-4 z-10">
@@ -351,7 +343,6 @@ async function fetchTopDestination() {
                 </div>
             `;
             
-            // Update the container and hide loading
             topDestinationContainer.innerHTML = html;
             topDestinationContainer.classList.remove('hidden');
             loadingElement.classList.add('hidden');
@@ -364,11 +355,9 @@ async function fetchTopDestination() {
     }
 }
 
-// Call the function when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkAndPopulateDropdowns();
     
-    // Check if we need to fetch the top destination
     const topDestinationContainer = document.getElementById('top-destination-container');
     if (topDestinationContainer && topDestinationContainer.classList.contains('hidden')) {
         fetchTopDestination();
