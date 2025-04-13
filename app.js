@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const sgMail = require('@sendgrid/mail');
 const SESSION_SECRET = process.env.SESSION_SECRET;
-const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe  = require('stripe')('sk_test_51QwRMbFtpkraOtDeF2bVkO5DXd4v6Qui6jxN3KqVH1qTcapCS4ArrwVLE7V4KTJrFSZ7ykfD2dHx2yv2fp91PjmO00vZDojKip');
 const port = 4000;
 app.use(express.json());
 require('dotenv').config();
