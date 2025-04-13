@@ -265,16 +265,20 @@
             const response = await fetch('/api/dropdown-data');
             const data = await response.json();
             
-            // Populate country dropdown with unique values
+            // Clear existing options except the first one (the placeholder)
+            while (countryDropdown.options.length > 1) {
+                countryDropdown.remove(1);
+            }
+            
+            // Populate country dropdown
             if (data.countries && data.countries.length > 0) {
-                // Create a Set to track unique country names
-                const uniqueCountries = new Set();
+                // Track countries we've already added
+                const addedCountries = new Set();
                 
-                // Add only unique countries to the dropdown
                 data.countries.forEach(country => {
-                    // Skip if this country is already in the dropdown
-                    if (!uniqueCountries.has(country.country)) {
-                        uniqueCountries.add(country.country);
+                    // Skip if this country is already in our set
+                    if (!addedCountries.has(country.country)) {
+                        addedCountries.add(country.country);
                         
                         const option = document.createElement('option');
                         option.value = country.country;
@@ -282,18 +286,23 @@
                         countryDropdown.appendChild(option);
                     }
                 });
-                console.log(`Added ${uniqueCountries.size} unique countries to dropdown`);
+                console.log(`Added ${addedCountries.size} countries to dropdown`);
             }
             
-            // Populate transport dropdown if needed
-            if (transportDropdown.options.length <= 1 && data.transports && data.transports.length > 0) {
-                // Create a Set to track unique transport types
-                const uniqueTransports = new Set();
+            // Clear existing transport options except the first one
+            while (transportDropdown.options.length > 1) {
+                transportDropdown.remove(1);
+            }
+            
+            // Populate transport dropdown
+            if (data.transports && data.transports.length > 0) {
+                // Track transports we've already added
+                const addedTransports = new Set();
                 
                 data.transports.forEach(transport => {
-                    // Skip if this transport is already in the dropdown
-                    if (!uniqueTransports.has(transport.transport)) {
-                        uniqueTransports.add(transport.transport);
+                    // Skip if this transport is already in our set
+                    if (!addedTransports.has(transport.transport)) {
+                        addedTransports.add(transport.transport);
                         
                         const option = document.createElement('option');
                         option.value = transport.transport;
@@ -301,7 +310,7 @@
                         transportDropdown.appendChild(option);
                     }
                 });
-                console.log(`Added ${uniqueTransports.size} unique transports to dropdown`);
+                console.log(`Added ${addedTransports.size} transports to dropdown`);
             }
         } catch (error) {
             console.error('Error fetching dropdown data:', error);
