@@ -549,7 +549,6 @@ function editDestination(id) {
         })
         .then(destination => {
             console.log('Destination data received:', destination);
-            
             document.getElementById('edit_id').value = destination.id;
             document.getElementById('edit_name').value = destination.name;
             document.getElementById('edit_country').value = destination.country;
