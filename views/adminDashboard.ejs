@@ -643,7 +643,6 @@ document.getElementById('editDestinationForm').addEventListener('submit', functi
                     document.getElementById('dynamicSuccessAlert').style.opacity = '1';
                 }, 500);
             }, 3000);
-            
             // Refresh the destinations list
             fetch('/admin/destinations')
                 .then(response => response.json())
